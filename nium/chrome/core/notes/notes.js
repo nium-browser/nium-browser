@@ -64,6 +64,15 @@
   }
   const plain = (html) => { const d = document.createElement('div'); d.innerHTML = html || ''; d.querySelectorAll('li,p,h1,h2,h3,blockquote,pre,div,br').forEach((n) => n.append(' ')); return d.textContent.replace(/\s+/g, ' ').trim(); };
 
+  // Nium (Firefox): dentro do navegador esta página é privilegiada, e lá o innerHTML remove
+  // botões, campos e opções. Para a interface (não para o texto das notas) monta o HTML num
+  // documento à parte e copia os nós.
+  function setHTML(node, str) {
+    const wrap = node.localName === 'select' ? 'select' : 'div';
+    const doc = new DOMParser().parseFromString(`<!doctype html><body><${wrap}>${str}</${wrap}></body>`, 'text/html');
+    node.replaceChildren(...[...doc.body.firstElementChild.childNodes].map((n) => document.importNode(n, true)));
+  }
+
   // ---------- Armazenamento ----------
   async function load() {
     try {
@@ -113,7 +122,7 @@
         : item(f.id, f.name, ICON.folder).replace('<button ', `<button title="Clique duas vezes para renomear" `);
     }
     html += '<div class="sec-label"><span></span></div>' + item('trash', 'Lixeira', ICON.trash);
-    el.sections.innerHTML = html;
+    setHTML(el.sections, html);
     const input = el.sections.querySelector('[data-rename]');
     if (input) { input.focus(); input.select(); }
   }
@@ -149,10 +158,10 @@
     el.listTitle.textContent = viewName();
     const notes = visibleNotes();
     if (!notes.length) {
-      el.cards.innerHTML = `<p class="list-empty">${query ? 'Nenhuma nota encontrada.' : view === 'trash' ? 'A lixeira está vazia.' : 'Nenhuma nota aqui ainda.'}</p>`;
+      setHTML(el.cards, `<p class="list-empty">${query ? 'Nenhuma nota encontrada.' : view === 'trash' ? 'A lixeira está vazia.' : 'Nenhuma nota aqui ainda.'}</p>`);
       return;
     }
-    el.cards.innerHTML = notes.map((n) => {
+    setHTML(el.cards, notes.map((n) => {
       const text = plain(n.html);
       const folder = data.folders.find((f) => f.id === n.folder);
       const meta = [when(n.updatedAt), n.source ? host(n.source.url) : '', folder && view !== n.folder ? folder.name : ''].filter(Boolean);
@@ -160,7 +169,7 @@
         <div class="card-title">${n.pinned && !n.trashed ? ICON.pinned : ''}<span>${highlight(n.title || 'Sem título')}</span></div>
         <div class="card-snip">${highlight(text.slice(0, 180)) || '<span style="opacity:.6">Nota vazia</span>'}</div>
         <div class="card-meta">${meta.map((m, i) => `<span class="${i === 1 && n.source ? 'host' : ''}">${esc(m)}</span>`).join('<span>·</span>')}</div></button>`;
-    }).join('');
+    }).join(''));
   }
 
   // ---------- Editor ----------
@@ -180,7 +189,7 @@
     el.trashBar.hidden = !note.trashed;
     el.source.hidden = !note.source;
     if (note.source) { el.source.href = note.source.url; el.source.textContent = '↗ ' + (note.source.title || host(note.source.url)); }
-    el.folder.innerHTML = '<option value="">Sem pasta</option>' + data.folders.map((f) => `<option value="${esc(f.id)}" ${f.id === note.folder ? 'selected' : ''}>${esc(f.name)}</option>`).join('');
+    setHTML(el.folder, '<option value="">Sem pasta</option>' + data.folders.map((f) => `<option value="${esc(f.id)}" ${f.id === note.folder ? 'selected' : ''}>${esc(f.name)}</option>`).join(''));
     el.folder.disabled = !editable;
     el.pin.innerHTML = ICON.pinned;
     el.pin.classList.toggle('on', !!note.pinned);
