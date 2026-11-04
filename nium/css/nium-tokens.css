@@ -36,6 +36,19 @@
       --color-violet-desaturated-70: #2c2f2e;
       --color-violet-desaturated-80: #1f2121;
       --color-violet-desaturated-90: #161717;
+      /* Cantos do Nium Electron: 8px em botões e campos, 12px em cartões, menus e janelas.
+         (O visual "Nova" do Firefox usa botões em pílula e cantos de 24px.) */
+      --border-radius-xsmall: 4px;
+      --border-radius-small: 6px;
+      --border-radius-medium: 8px;
+      --border-radius-large: 12px;
+      --border-radius-xlarge: 12px;
+      --button-border-radius: 8px;
+      --input-border-radius: 8px;
+      --input-search-border-radius: 8px;
+      --card-border-radius: 12px;
+      --panel-menuitem-border-radius: 6px;
+      --popup-border-radius: 12px;
     }
   }
 }
