@@ -16,11 +16,21 @@ pref("app.normandy.enabled", false);
 pref("browser.discovery.enabled", false);
 pref("browser.crashReports.unsubmittedCheck.autoSubmit2", false);
 
-// Nova aba sem conteúdo patrocinado
+// Nova aba do Nium: limpa, sem patrocínio, notícias, clima nem widgets.
+// (A nova aba só aplica os padrões dela quando não há um padrão já definido aqui.)
+pref("browser.newtabpage.activity-stream.default.sites", "https://www.youtube.com/,https://www.wikipedia.org/,https://www.reddit.com/,https://mail.google.com/");
 pref("browser.newtabpage.activity-stream.showSponsored", false);
+pref("browser.newtabpage.activity-stream.system.showSponsored", false);
 pref("browser.newtabpage.activity-stream.showSponsoredTopSites", false);
 pref("browser.newtabpage.activity-stream.feeds.section.topstories", false);
-pref("browser.newtabpage.activity-stream.default.sites", "");
+pref("browser.newtabpage.activity-stream.showWeather", false);
+pref("browser.newtabpage.activity-stream.system.showWeather", false);
+pref("browser.newtabpage.activity-stream.showWebNotifications", false);
+pref("browser.newtabpage.activity-stream.system.showWebNotifications", false);
+pref("browser.newtabpage.activity-stream.widgets.enabled", false);
+pref("browser.newtabpage.activity-stream.widgets.system.enabled", false);
+pref("browser.newtabpage.activity-stream.newtabWallpapers.highlightEnabled", false);
+pref("browser.newtabpage.activity-stream.telemetry", false);
 
 // Conta Mozilla (sincronização da Mozilla) desligada: o Nium terá a própria sincronização
 pref("identity.fxaccounts.enabled", false);
