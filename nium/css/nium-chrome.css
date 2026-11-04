@@ -219,6 +219,8 @@ sidebar-main:not([expanded]) > .nium-sb-block {
   display: flex;
   flex-direction: column;
   flex: none;
+  /* A lateral do Firefox numera a ordem dos itens da janela; o painel fica sempre por último (à direita). */
+  order: 1000 !important;
   width: 368px;
   margin: 0 8px 8px 0;
   border-radius: 12px;
