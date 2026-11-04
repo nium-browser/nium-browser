@@ -158,6 +158,13 @@ def newtab():
   say('nova aba do Nium')
 
 
+def chrome_scripts():
+  """Scripts do Nium que rodam em cada janela (barra lateral do Nium Electron)."""
+  dest = FIREFOX / 'browser' / 'base' / 'content' / 'nium'
+  n = copy_tree(KIT / 'chrome', dest)
+  say(f'scripts do Nium na janela ({n} atualizados)')
+
+
 def prefs():
   p = FIREFOX / 'browser' / 'app' / 'profile' / 'firefox.js'
   text = p.read_text(encoding='utf-8')
@@ -266,6 +273,15 @@ PATCHES = [
   ('browser/locales/en-US/browser/browserSets.ftl', 'toggle-sidebar-shortcut =\n    .key = Z', 'toggle-sidebar-shortcut =\n    .key = B'),
   # Ctrl+Alt+A = painel de IA
   ('browser/locales/en-US/browser/browserSets.ftl', 'ai-chatbot-sidebar-shortcut =\n    .key = X', 'ai-chatbot-sidebar-shortcut =\n    .key = A'),
+  # Barra lateral do Nium Electron: o script nium-sidebar.js entra em cada janela
+  ('browser/base/jar.mn',
+   '        content/browser/browser-main.js                     (content/browser-main.js)\n',
+   '        content/browser/browser-main.js                     (content/browser-main.js)\n'
+   '        content/browser/nium/nium-sidebar.js                (content/nium/nium-sidebar.js)\n'),
+  ('browser/base/content/browser.xhtml',
+   '  <script src="chrome://browser/content/browser-main.js"></script>\n',
+   '  <script src="chrome://browser/content/browser-main.js"></script>\n'
+   '  <script src="chrome://browser/content/nium/nium-sidebar.js"></script>\n'),
   # about:logins: tira as instruções de sincronizar com conta Mozilla
   ('browser/components/aboutlogins/content/aboutLogins.html', '        <ul>\n          <li data-l10n-id="login-intro-instructions-fxa2">', '        <ul hidden>\n          <li data-l10n-id="login-intro-instructions-fxa2">'),
 ]
@@ -278,10 +294,10 @@ def patches():
     if not p.exists():
       say(f'AVISO: {rel} não existe (pulei)'); miss += 1; continue
     text = p.read_text(encoding='utf-8')
-    if old in text:
+    if new in text:
+      ok += 1   # já aplicado (por isso cada texto novo tem de ser único no arquivo)
+    elif old in text:
       write_if_changed(p, text.replace(old, new, 1)); ok += 1
-    elif new in text:
-      ok += 1   # já aplicado
     else:
       say(f'AVISO: não achei o texto em {rel} (o Firefox mudou?) — pulei: {old[:50]!r}'); miss += 1
   say(f'textos do Firefox ajustados ({ok} ok, {miss} pulados)')
@@ -291,6 +307,7 @@ def revert():
   shutil.rmtree(FIREFOX / 'browser' / 'branding' / 'nium', ignore_errors=True)
   shutil.rmtree(FIREFOX / 'browser' / 'themes' / 'addons' / 'nium', ignore_errors=True)
   shutil.rmtree(FIREFOX / 'browser' / 'extensions' / 'newtab' / 'data' / 'content' / 'nium', ignore_errors=True)
+  shutil.rmtree(FIREFOX / 'browser' / 'base' / 'content' / 'nium', ignore_errors=True)
   subprocess.call(['git', 'checkout', '--', 'browser/app/profile/firefox.js',
                    'browser/themes/addons/jar.mn', 'browser/themes/BuiltInThemeConfig.sys.mjs',
                    'browser/themes/ThemesList.sys.mjs',
@@ -321,6 +338,7 @@ def main():
   tokens()
   chrome_css()
   newtab()
+  chrome_scripts()
   art()
   patches()
   prefs()

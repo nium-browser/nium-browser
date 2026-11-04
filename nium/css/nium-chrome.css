@@ -48,4 +48,140 @@ sidebar-main[expanded] > #vertical-tabs[visible] {
     font-size: 13px;
   }
 }
+/* Blocos do Nium na lateral (nium-sidebar.js): espaço atual, buscar abas, "Your tabs",
+ * Nium Shield e Seu espaço. Medidas do Nium Electron; cores vêm do tema. */
+sidebar-main[expanded] > #vertical-tabs[visible] {
+  &::before { order: -2; }
+  > #nium-sidebar-top { order: -1; }
+  > #tabbrowser-tabs { order: 0; }
+  > #nium-sidebar-bottom { order: 1; }
+}
+sidebar-main:not([expanded]) .nium-sb-block,
+#vertical-tabs:not([visible]) .nium-sb-block {
+  display: none;
+}
+.nium-sb-block {
+  display: flex;
+  flex-direction: column;
+  flex: none;
+  margin-inline: var(--tab-margin-inline-inner, 8px);
+  font-size: 13px;
+  color: var(--toolbox-text-color, currentColor);
+
+  button {
+    appearance: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: start;
+    cursor: default;
+
+    &:hover { background-color: var(--tab-background-color-hover, color-mix(in srgb, currentColor 8%, transparent)); }
+    &:focus-visible { outline: var(--focus-outline); outline-offset: -2px; }
+  }
+}
+.nium-sb-icon {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  -moz-context-properties: fill, fill-opacity;
+  fill: currentColor;
+}
+.nium-space-picker {
+  padding: 6px 8px;
+  margin-bottom: 4px;
+
+  > .nium-sb-icon { margin-inline-start: auto; width: 12px; height: 12px; opacity: .6; }
+}
+.nium-space-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--color-accent-primary, #3f6f5c);
+  color: var(--button-text-color-primary, #fff);
+  flex: none;
+}
+.nium-space-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nium-sb-search {
+  height: 36px;
+  padding: 0 10px;
+  gap: 9px !important;
+  margin: 2px 0 12px;
+  background-color: color-mix(in srgb, currentColor 6%, transparent) !important;
+  opacity: .85;
+
+  &:hover { background-color: color-mix(in srgb, currentColor 10%, transparent) !important; opacity: 1; }
+  > span { flex: 1; }
+  > kbd {
+    font: inherit;
+    font-size: 10.5px;
+    padding: 1px 6px;
+    border-radius: 5px;
+    border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+    opacity: .8;
+  }
+}
+.nium-section-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 6px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  opacity: .55;
+
+  > .nium-count {
+    min-width: 18px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: color-mix(in srgb, currentColor 12%, transparent);
+    text-align: center;
+    letter-spacing: 0;
+  }
+}
+#nium-sidebar-bottom {
+  padding-block: 6px 4px;
+  border-top: 1px solid color-mix(in srgb, currentColor 10%, transparent);
+  margin-top: 4px;
+}
+.nium-sb-row {
+  height: 34px;
+  padding: 0 10px;
+
+  > .nium-sb-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  > .nium-sb-icon:last-child { opacity: .7; }
+}
+.nium-shield-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-accent-primary, #3f6f5c);
+}
+.nium-avatar {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin-inline-start: -2px;
+  border-radius: 50%;
+  background: var(--color-accent-primary, #3f6f5c);
+  color: var(--button-text-color-primary, #fff);
+  font-size: 11px;
+  font-weight: 700;
+}
 /* --- Nium: fim --- */
