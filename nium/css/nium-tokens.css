@@ -1,0 +1,42 @@
+/* --- Nium: início ---
+ * Cores do Nium no lugar do violeta do Firefox (novo visual "Nova") e do azul do visual antigo.
+ * Vale para as páginas internas (nova aba, configurações, complementos) e para a janela.
+ * O apply.py coloca este bloco no fim de toolkit/themes/shared/design-system/dist/tokens-shared.css. */
+:root,
+:host(.anonymous-content-host) {
+  @layer tokens-foundation {
+    --color-accent-primary: light-dark(#3f6f5c, #9cbfae);
+    --color-accent-primary-hover: light-dark(#335c4c, #b2cfc1);
+    --color-accent-primary-active: light-dark(#284a3d, #c8ddd3);
+    --color-accent-primary-selected: light-dark(#3f6f5c, #9cbfae);
+    --toolbarbutton-icon-fill-attention: light-dark(#3f6f5c, #9cbfae);
+  }
+
+  @media -moz-pref("browser.nova.enabled") {
+    @layer tokens-foundation-nova {
+      /* Verde do Nium (escala de destaque) */
+      --color-violet-0: #eef6f2;
+      --color-violet-10: #dcece4;
+      --color-violet-20: #c0dccf;
+      --color-violet-30: #9cbfae;
+      --color-violet-40: #77a08c;
+      --color-violet-50: #3f6f5c;
+      --color-violet-60: #335c4c;
+      --color-violet-70: #284a3d;
+      --color-violet-80: #1d362d;
+      --color-violet-90: #121f1a;
+      /* Cinzas do Nium (superfícies e texto) */
+      --color-violet-desaturated-0: #f4f5f4;
+      --color-violet-desaturated-10: #e9ebea;
+      --color-violet-desaturated-20: #d8dcda;
+      --color-violet-desaturated-30: #bcc1bf;
+      --color-violet-desaturated-40: #979d9a;
+      --color-violet-desaturated-50: #6f7572;
+      --color-violet-desaturated-60: #4f5452;
+      --color-violet-desaturated-70: #2c2f2e;
+      --color-violet-desaturated-80: #1f2121;
+      --color-violet-desaturated-90: #161717;
+    }
+  }
+}
+/* --- Nium: fim --- */

@@ -110,6 +110,18 @@ def theme():
   say('tema Nium embutido')
 
 
+def tokens():
+  """Cores do Nium nas páginas internas (troca o violeta/azul do Firefox pelo verde do Nium)."""
+  p = FIREFOX / 'toolkit' / 'themes' / 'shared' / 'design-system' / 'dist' / 'tokens-shared.css'
+  text = p.read_text(encoding='utf-8')
+  begin = '/* --- Nium: início ---'
+  if begin in text:
+    text = text[:text.index(begin)].rstrip('\n') + '\n'
+  block = (KIT / 'css' / 'nium-tokens.css').read_text(encoding='utf-8').strip('\n')
+  write_if_changed(p, text + '\n' + block + '\n')
+  say('cores do Nium nas páginas internas')
+
+
 def prefs():
   p = FIREFOX / 'browser' / 'app' / 'profile' / 'firefox.js'
   text = p.read_text(encoding='utf-8')
@@ -136,7 +148,8 @@ def revert():
   shutil.rmtree(FIREFOX / 'browser' / 'themes' / 'addons' / 'nium', ignore_errors=True)
   subprocess.call(['git', 'checkout', '--', 'browser/app/profile/firefox.js',
                    'browser/themes/addons/jar.mn', 'browser/themes/BuiltInThemeConfig.sys.mjs',
-                   'browser/themes/ThemesList.sys.mjs'], cwd=FIREFOX)
+                   'browser/themes/ThemesList.sys.mjs',
+                   'toolkit/themes/shared/design-system/dist/tokens-shared.css'], cwd=FIREFOX)
   m = FIREFOX / 'mozconfig'
   if m.exists() and 'Nium' in m.read_text(encoding='utf-8'):
     m.unlink()
@@ -156,6 +169,7 @@ def main():
     return revert()
   branding()
   theme()
+  tokens()
   prefs()
   mozconfig()
   say('pronto. Agora: ./mach build && ./mach run')
