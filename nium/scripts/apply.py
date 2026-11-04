@@ -153,6 +153,9 @@ LOGO_ICONS = ('browser/themes/shared/sidebar/firefox.svg',
               'browser/themes/shared/icons/window-firefox.svg',
               'browser/themes/shared/preferences/mozilla-logo.svg',
               'browser/themes/shared/preferences/mozilla-16.svg')
+PRIVATE_ICONS = ('browser/themes/shared/privatebrowsing/favicon.svg',
+                 'browser/themes/shared/privatebrowsing/pbm-logo.svg',
+                 'toolkit/themes/shared/icons/indicator-private-browsing.svg')
 
 
 def _mascots():
@@ -173,13 +176,15 @@ def art():
   ill = (ART / 'illustration.svg').read_bytes()
   blank = (ART / 'blank.svg').read_bytes()
   logo = (ART / 'logo-icon.svg').read_bytes()
+  private = (ART / 'private-icon.svg').read_bytes()
   n = 0
   files = _mascots()
-  for f in files + list(LOGO_ICONS):
+  for f in files + list(LOGO_ICONS) + list(PRIVATE_ICONS):
     p = FIREFOX / f
     if not p.exists():
       continue
-    data = logo if f in LOGO_ICONS else blank if p.name in DECORATIVE else ill
+    data = (logo if f in LOGO_ICONS else private if f in PRIVATE_ICONS
+            else blank if p.name in DECORATIVE else ill)
     if p.read_bytes() != data:
       p.write_bytes(data)
       n += 1
@@ -201,6 +206,10 @@ PATCHES = [
   ('browser/components/preferences/config/account-sync.mjs', 'hidden: !Referrals.isEnabled,', 'hidden: true, // Nium'),
   ('browser/locales/en-US/browser/preferences/preferences.ftl', 'account-sync-section =\n    .heading = Account and sync', 'account-sync-section =\n    .heading = Essentials'),
   ('browser/locales/en-US/browser/preferences/preferences.ftl', 'pane-account-sync-title2 = Account and sync\n    .title = Account and sync', 'pane-account-sync-title2 = Essentials\n    .title = Essentials'),
+  # Painel de extensões vazio: sem ilustração, só texto (como no Nium Electron)
+  ('browser/themes/shared/addons/unified-extensions.css', '#unified-extensions-empty-state {\n  > img {\n', '#unified-extensions-empty-state {\n  > img {\n    display: none; /* Nium */\n'),
+  ('browser/locales/en-US/browser/unifiedExtensions.ftl', 'unified-extensions-empty-reason-zero-extensions-onboarding2 = A few extensions go a long way', 'unified-extensions-empty-reason-zero-extensions-onboarding2 = No extensions yet'),
+  ('browser/locales/en-US/browser/unifiedExtensions.ftl', 'unified-extensions-empty-content-explain-extensions-onboarding2 = We’ve got recommendations to help you improve focus, privacy, and more.', 'unified-extensions-empty-content-explain-extensions-onboarding2 = Add extensions to block ads, fill passwords and more. Select “{ unified-extensions-manage-extensions.label }” to get started.'),
   # about:logins: tira as instruções de sincronizar com conta Mozilla
   ('browser/components/aboutlogins/content/aboutLogins.html', '        <ul>\n          <li data-l10n-id="login-intro-instructions-fxa2">', '        <ul hidden>\n          <li data-l10n-id="login-intro-instructions-fxa2">'),
 ]
@@ -228,7 +237,7 @@ def revert():
                    'browser/themes/addons/jar.mn', 'browser/themes/BuiltInThemeConfig.sys.mjs',
                    'browser/themes/ThemesList.sys.mjs',
                    'toolkit/themes/shared/design-system/dist/tokens-shared.css']
-                  + sorted({r for r, _, _ in PATCHES}) + _mascots() + list(LOGO_ICONS), cwd=FIREFOX)
+                  + sorted({r for r, _, _ in PATCHES}) + _mascots() + list(LOGO_ICONS) + list(PRIVATE_ICONS), cwd=FIREFOX)
   m = FIREFOX / 'mozconfig'
   if m.exists() and 'Nium' in m.read_text(encoding='utf-8'):
     m.unlink()
