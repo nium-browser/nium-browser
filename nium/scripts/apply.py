@@ -266,7 +266,11 @@ PATCHES = [
   ('browser/base/content/browser-sets.inc.xhtml', '<key id="key_searchTabs" data-l10n-id="search-tabs-shortcut" command="Browser:SearchTabs" modifiers="accel,shift"/>', '<key id="key_searchTabs" data-l10n-id="search-tabs-shortcut" command="Browser:SearchTabs" modifiers="accel"/>'),
   ('browser/locales/en-US/browser/browserSets.ftl', 'search-tabs-shortcut =\n    .key = A', 'search-tabs-shortcut =\n    .key = K'),
   # Ctrl+B = abrir/fechar a barra lateral (no Firefox era favoritos na lateral)
-  ('browser/base/content/browser-sets.inc.xhtml', '    <key id="viewBookmarksSidebarKb"\n         data-l10n-id="bookmark-show-sidebar-shortcut"\n         modifiers="accel"/>', '    <key id="viewBookmarksSidebarKb"/>'),
+  # Favoritos na lateral vai para Ctrl+Alt+B
+  ('browser/base/content/browser-sets.inc.xhtml',
+   ('    <key id="viewBookmarksSidebarKb"\n         data-l10n-id="bookmark-show-sidebar-shortcut"\n         modifiers="accel"/>',
+    '    <key id="viewBookmarksSidebarKb"/>'),
+   '    <key id="viewBookmarksSidebarKb"\n         data-l10n-id="bookmark-show-sidebar-shortcut"\n         modifiers="accel,alt"/>'),
   ('browser/base/content/browser-sets.inc.xhtml',
    '    <key id="toggleSidebarKb"\n         data-l10n-id="toggle-sidebar-shortcut"\n#ifdef XP_MACOSX\n         modifiers="control"\n#else\n         modifiers="control,alt"\n#endif',
    '    <key id="toggleSidebarKb"\n         data-l10n-id="toggle-sidebar-shortcut"\n#ifdef XP_MACOSX\n         modifiers="control"\n#else\n         modifiers="accel"\n#endif'),
@@ -282,6 +286,13 @@ PATCHES = [
    '  <script src="chrome://browser/content/browser-main.js"></script>\n',
    '  <script src="chrome://browser/content/browser-main.js"></script>\n'
    '  <script src="chrome://browser/content/nium/nium-sidebar.js"></script>\n'),
+  # Lugares do Nium na barra lateral (logo/espaço/busca em cima das abas; Shield/Seu espaço embaixo)
+  ('browser/components/sidebar/sidebar-main.mjs',
+   '        <slot name="tabstrip"></slot>\n',
+   '        <slot name="nium-top"></slot>\n        <slot name="tabstrip"></slot>\n'),
+  ('browser/components/sidebar/sidebar-main.mjs',
+   '          </button-group>\n        </div>\n      </div>\n    `;\n  }\n}',
+   '          </button-group>\n        </div>\n        <slot name="nium-bottom"></slot>\n      </div>\n    `;\n  }\n}'),
   # about:logins: tira as instruções de sincronizar com conta Mozilla
   ('browser/components/aboutlogins/content/aboutLogins.html', '        <ul>\n          <li data-l10n-id="login-intro-instructions-fxa2">', '        <ul hidden>\n          <li data-l10n-id="login-intro-instructions-fxa2">'),
 ]
@@ -294,12 +305,14 @@ def patches():
     if not p.exists():
       say(f'AVISO: {rel} não existe (pulei)'); miss += 1; continue
     text = p.read_text(encoding='utf-8')
+    olds = old if isinstance(old, tuple) else (old,)   # vários: versões antigas do próprio Nium
+    found = next((o for o in olds if o in text), None)
     if new in text:
       ok += 1   # já aplicado (por isso cada texto novo tem de ser único no arquivo)
-    elif old in text:
-      write_if_changed(p, text.replace(old, new, 1)); ok += 1
+    elif found:
+      write_if_changed(p, text.replace(found, new, 1)); ok += 1
     else:
-      say(f'AVISO: não achei o texto em {rel} (o Firefox mudou?) — pulei: {old[:50]!r}'); miss += 1
+      say(f'AVISO: não achei o texto em {rel} (o Firefox mudou?) — pulei: {olds[0][:50]!r}'); miss += 1
   say(f'textos do Firefox ajustados ({ok} ok, {miss} pulados)')
 
 

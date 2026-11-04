@@ -16,25 +16,6 @@
   --urlbarview-border-radius: 10px !important;
 }
 
-/* Barra lateral aberta: logo "nium." no topo, como no Nium Electron. */
-sidebar-main[expanded] > #vertical-tabs[visible] {
-  flex-direction: column;
-
-  &::before {
-    content: "nium.";
-    flex: none;
-    padding: 8px 12px 12px;
-    font: 700 21px/1.1 "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
-    letter-spacing: -0.04em;
-    color: var(--toolbox-text-color, currentColor);
-  }
-
-  > #tabbrowser-tabs {
-    flex: 1;
-    min-height: 0;
-  }
-}
-
 /* Abas na lateral: linha de 36px, aba ativa sem sombra nem borda, como no Electron. */
 #tabbrowser-tabs[orient="vertical"] {
   --tab-min-height: 36px;
@@ -48,32 +29,29 @@ sidebar-main[expanded] > #vertical-tabs[visible] {
     font-size: 13px;
   }
 }
-/* Blocos do Nium na lateral (nium-sidebar.js): espaço atual, buscar abas, "Your tabs",
- * Nium Shield e Seu espaço. Medidas do Nium Electron; cores vêm do tema. */
-sidebar-main[expanded] > #vertical-tabs[visible] {
-  &::before { order: -2; }
-  > #nium-sidebar-top { order: -1; }
-  > #tabbrowser-tabs { order: 0; }
-  > #nium-sidebar-bottom { order: 1; }
-}
-sidebar-main:not([expanded]) .nium-sb-block,
-#vertical-tabs:not([visible]) .nium-sb-block {
-  display: none;
-}
+/* Blocos do Nium na lateral (nium-sidebar.js). Ficam em "slots" próprios da barra lateral
+ * (nium-top em cima das abas, nium-bottom embaixo de tudo), fora da área personalizável,
+ * para não sumirem ao reabrir. Medidas do Nium Electron; cores vêm do tema. */
 .nium-sb-block {
   display: flex;
   flex-direction: column;
   flex: none;
+  gap: 2px;
   margin-inline: var(--tab-margin-inline-inner, 8px);
   font-size: 13px;
   color: var(--toolbox-text-color, currentColor);
+  --nium-muted: color-mix(in srgb, currentColor 62%, transparent);
+  --nium-hover: color-mix(in srgb, currentColor 7%, transparent);
+  --nium-line: color-mix(in srgb, currentColor 12%, transparent);
 
   button {
     appearance: none;
     display: flex;
     align-items: center;
     gap: 10px;
+    min-width: 0;
     margin: 0;
+    padding: 0 8px;
     border: 0;
     border-radius: 8px;
     background: transparent;
@@ -82,7 +60,7 @@ sidebar-main:not([expanded]) .nium-sb-block,
     text-align: start;
     cursor: default;
 
-    &:hover { background-color: var(--tab-background-color-hover, color-mix(in srgb, currentColor 8%, transparent)); }
+    &:hover { background-color: var(--nium-hover); }
     &:focus-visible { outline: var(--focus-outline); outline-offset: -2px; }
   }
 }
@@ -93,95 +71,122 @@ sidebar-main:not([expanded]) .nium-sb-block,
   -moz-context-properties: fill, fill-opacity;
   fill: currentColor;
 }
-.nium-space-picker {
-  padding: 6px 8px;
-  margin-bottom: 4px;
-
-  > .nium-sb-icon { margin-inline-start: auto; width: 12px; height: 12px; opacity: .6; }
-}
-.nium-space-icon {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: var(--color-accent-primary, #3f6f5c);
-  color: var(--button-text-color-primary, #fff);
-  flex: none;
-}
-.nium-space-name {
-  font-weight: 600;
+.nium-sb-text {
+  flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.nium-sb-search {
-  height: 36px;
-  padding: 0 10px;
-  gap: 9px !important;
-  margin: 2px 0 12px;
-  background-color: color-mix(in srgb, currentColor 6%, transparent) !important;
-  opacity: .85;
 
-  &:hover { background-color: color-mix(in srgb, currentColor 10%, transparent) !important; opacity: 1; }
-  > span { flex: 1; }
+/* Logo: "N" + "nium." */
+.nium-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding-inline: 6px;
+}
+.nium-mark {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border-radius: 6px;
+  background: var(--toolbox-text-color, currentColor);
+  > svg { width: 14px; height: 14px; fill: none; stroke: var(--toolbar-bgcolor, #1f1f22); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+}
+.nium-wordmark {
+  font: 700 18px/1 "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  letter-spacing: -0.04em;
+}
+
+/* Espaço atual */
+.nium-space-picker {
+  height: 36px;
+  font-weight: 600;
+}
+.nium-space-icon {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex: none;
+  border-radius: 6px;
+  border: 1px solid var(--nium-line);
+  background: var(--nium-hover);
+  margin-inline-start: -2px;
+  > .nium-sb-icon { width: 14px; height: 14px; }
+}
+
+/* Buscar abas */
+.nium-sb-search {
+  height: 30px;
+  margin-block: 2px 10px;
+  border: 1px solid var(--nium-line) !important;
+  color: var(--nium-muted) !important;
+
+  &:hover { background-color: var(--nium-hover) !important; color: inherit !important; }
   > kbd {
     font: inherit;
     font-size: 10.5px;
     padding: 1px 6px;
     border-radius: 5px;
-    border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
-    opacity: .8;
+    border: 1px solid var(--nium-line);
   }
 }
 .nium-section-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px 6px;
+  padding: 2px 8px 6px;
   font-size: 10.5px;
   font-weight: 600;
   letter-spacing: .08em;
   text-transform: uppercase;
-  opacity: .55;
-
-  > .nium-count {
-    min-width: 18px;
-    padding: 0 6px;
-    border-radius: 999px;
-    background: color-mix(in srgb, currentColor 12%, transparent);
-    text-align: center;
-    letter-spacing: 0;
-  }
+  color: var(--nium-muted);
+  opacity: .8;
 }
+
+/* Rodapé: Nium Shield e Seu espaço */
 #nium-sidebar-bottom {
-  padding-block: 6px 4px;
-  border-top: 1px solid color-mix(in srgb, currentColor 10%, transparent);
-  margin-top: 4px;
+  padding-block: 6px 8px;
 }
 .nium-sb-row {
   height: 34px;
-  padding: 0 10px;
-
-  > .nium-sb-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   > .nium-sb-icon:last-child { opacity: .7; }
 }
 .nium-shield-dot {
   width: 7px;
   height: 7px;
+  flex: none;
   border-radius: 50%;
-  background: var(--color-accent-primary, #3f6f5c);
+  background: #c9a86a;
+  box-shadow: 0 0 0 2px color-mix(in srgb, #c9a86a 22%, transparent);
 }
 .nium-avatar {
   display: grid;
   place-items: center;
   width: 20px;
   height: 20px;
+  flex: none;
   margin-inline-start: -2px;
   border-radius: 50%;
-  background: var(--color-accent-primary, #3f6f5c);
-  color: var(--button-text-color-primary, #fff);
+  background: var(--toolbox-text-color, currentColor);
+  color: var(--toolbar-bgcolor, #1f1f22);
   font-size: 11px;
   font-weight: 700;
+}
+
+/* Lateral recolhida: só ícones, centralizados, como no Nium Electron */
+sidebar-main:not([expanded]) > .nium-sb-block {
+  align-items: center;
+  margin-inline: 0;
+
+  .nium-wordmark, .nium-sb-text, .nium-section-label, kbd, .nium-sb-row > .nium-sb-icon:last-child { display: none; }
+  .nium-brand { padding: 0; justify-content: center; }
+  button { width: 32px; height: 32px; padding: 0; justify-content: center; }
+  .nium-sb-search { margin-block: 2px 8px; border-color: transparent !important; }
+  .nium-space-icon { margin: 0; }
+  .nium-avatar, .nium-shield-dot { margin: 0; }
+  .nium-sb-row:has(.nium-shield-dot) { position: relative; }
+  .nium-shield-dot { position: absolute; top: 6px; inset-inline-end: 6px; width: 6px; height: 6px; }
 }
 /* --- Nium: fim --- */

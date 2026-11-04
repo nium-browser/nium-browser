@@ -16,18 +16,17 @@ var NiumSidebar = {
     if (!window.toolbar.visible) {
       return; // janelas de pop-up não têm barra lateral
     }
-    const strip = document.getElementById("vertical-tabs");
-    const tabs = document.getElementById("tabbrowser-tabs");
-    if (!strip || !tabs || document.getElementById("nium-sidebar-top")) {
+    const main = document.querySelector("sidebar-main");
+    if (!main || document.getElementById("nium-sidebar-top")) {
       return;
     }
-    // A lista de abas pode entrar na lateral depois; a ordem visual vem do CSS (order).
-    strip.prepend(this.buildTop());
-    strip.appendChild(this.buildBottom());
-    this.updateCount();
-    for (const type of ["TabOpen", "TabClose", "TabPinned", "TabUnpinned"]) {
-      gBrowser.tabContainer.addEventListener(type, () => this.updateCount());
-    }
+    // Slots próprios do Nium dentro da barra lateral (ver sidebar-main.mjs): ficam fora da
+    // área personalizável das abas, então o Firefox não os remove ao reabrir.
+    const top = this.buildTop();
+    top.setAttribute("slot", "nium-top");
+    const bottom = this.buildBottom();
+    bottom.setAttribute("slot", "nium-bottom");
+    main.append(top, bottom);
   },
 
   el(tag, props = {}, children = []) {
@@ -55,41 +54,35 @@ var NiumSidebar = {
     }
   },
 
-  // ---- topo: espaço atual, buscar abas, "Suas abas" ----
+  // ---- topo: logo, espaço atual, buscar abas, "Your tabs" ----
   buildTop() {
-    this.spaceName = this.el("span", { class: "nium-space-name", text: "Personal space" });
+    const mark = this.el("span", { class: "nium-mark" });
+    mark.innerHTML =
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M4.5 11.5v-7l7 7v-7"/></svg>';
+    const brand = this.el("div", { class: "nium-brand" }, [
+      mark,
+      this.el("span", { class: "nium-wordmark", text: "nium." }),
+    ]);
+    this.spaceName = this.el("span", { class: "nium-sb-text", text: "Personal space" });
     const picker = this.el(
       "button",
       { class: "nium-space-picker", title: "Spaces", onclick: e => this.openSpacesMenu(e.currentTarget) },
-      [
-        this.el("span", { class: "nium-space-icon" }, [this.icon("chrome://global/skin/icons/folder.svg")]),
-        this.spaceName,
-        this.icon("chrome://global/skin/icons/arrow-down.svg"),
-      ]
+      [this.el("span", { class: "nium-space-icon" }, [this.icon("chrome://global/skin/icons/folder.svg")]), this.spaceName]
     );
     const kbd = this.el("kbd", { text: this.shortcutText("key_searchTabs") });
     const search = this.el(
       "button",
       {
         class: "nium-sb-search",
+        title: "Search tabs",
         onclick: () => document.getElementById("Browser:SearchTabs")?.doCommand(),
       },
-      [this.icon("chrome://global/skin/icons/search-glass.svg"), this.el("span", { text: "Search tabs" }), kbd]
+      [this.icon("chrome://global/skin/icons/search-glass.svg"), this.el("span", { class: "nium-sb-text", text: "Search tabs" }), kbd]
     );
     // O atalho pode mudar em about:keyboard: atualiza ao passar o mouse.
     search.addEventListener("mouseenter", () => (kbd.textContent = this.shortcutText("key_searchTabs")));
-    this.countLabel = this.el("span", { class: "nium-count" });
-    const label = this.el("div", { class: "nium-section-label" }, [
-      this.el("span", { text: "Your tabs" }),
-      this.countLabel,
-    ]);
-    return this.el("div", { id: "nium-sidebar-top", class: "nium-sb-block" }, [picker, search, label]);
-  },
-
-  updateCount() {
-    if (this.countLabel) {
-      this.countLabel.textContent = String(gBrowser.visibleTabs.length);
-    }
+    const label = this.el("div", { class: "nium-section-label", text: "Your tabs" });
+    return this.el("div", { id: "nium-sidebar-top", class: "nium-sb-block" }, [brand, picker, search, label]);
   },
 
   // ---- rodapé: Nium Shield e Seu espaço ----
@@ -99,7 +92,7 @@ var NiumSidebar = {
       { class: "nium-sb-row", title: "Tracker and pop-up protection", onclick: () => this.openShield() },
       [
         this.icon("chrome://browser/skin/tracking-protection.svg"),
-        this.el("span", { class: "nium-sb-label", text: "Nium Shield" }),
+        this.el("span", { class: "nium-sb-text", text: "Nium Shield" }),
         this.el("span", { class: "nium-shield-dot" }),
       ]
     );
@@ -108,7 +101,7 @@ var NiumSidebar = {
       { class: "nium-sb-row", title: "Settings", onclick: () => openPreferences() },
       [
         this.el("span", { class: "nium-avatar", text: "N" }),
-        this.el("span", { class: "nium-sb-label", text: "Your space" }),
+        this.el("span", { class: "nium-sb-text", text: "Your space" }),
         this.icon("chrome://global/skin/icons/settings.svg"),
       ]
     );

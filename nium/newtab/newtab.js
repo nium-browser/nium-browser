@@ -218,6 +218,8 @@
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") refresh();
   });
+  window.addEventListener("focus", refresh);
+  window.addEventListener("pageshow", refresh);
   // Foco na pesquisa ao abrir, como no Electron (a barra de endereço continua com Ctrl+L).
   $("#home-search").focus();
 })();

@@ -69,3 +69,8 @@ pref("browser.toolbars.bookmarks.visibility", "never");
 
 // Nova aba do Nium também na página inicial (sem o cache da página inicial do Firefox)
 pref("browser.startup.homepage.abouthome_cache.enabled", false);
+
+// Nova aba sempre atualizada (sem pré-carregar) e a página inicial é a mesma nova aba,
+// para os atalhos ficarem guardados num lugar só
+pref("browser.newtab.preload", false);
+pref("browser.startup.homepage", "about:newtab");
