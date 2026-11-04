@@ -122,6 +122,18 @@ def tokens():
   say('cores do Nium nas páginas internas')
 
 
+def chrome_css():
+  """Visual do Nium Electron na janela (cantos, fonte, logo na lateral, abas)."""
+  p = FIREFOX / 'browser' / 'themes' / 'shared' / 'browser-shared.css'
+  text = p.read_text(encoding='utf-8')
+  begin = '/* --- Nium: início ---'
+  if begin in text:
+    text = text[:text.index(begin)].rstrip('\n') + '\n'
+  block = (KIT / 'css' / 'nium-chrome.css').read_text(encoding='utf-8').strip('\n')
+  write_if_changed(p, text + '\n' + block + '\n')
+  say('visual do Nium na janela')
+
+
 def prefs():
   p = FIREFOX / 'browser' / 'app' / 'profile' / 'firefox.js'
   text = p.read_text(encoding='utf-8')
@@ -210,6 +222,10 @@ PATCHES = [
   ('browser/themes/shared/addons/unified-extensions.css', '#unified-extensions-empty-state {\n  > img {\n', '#unified-extensions-empty-state {\n  > img {\n    display: none; /* Nium */\n'),
   ('browser/locales/en-US/browser/unifiedExtensions.ftl', 'unified-extensions-empty-reason-zero-extensions-onboarding2 = A few extensions go a long way', 'unified-extensions-empty-reason-zero-extensions-onboarding2 = No extensions yet'),
   ('browser/locales/en-US/browser/unifiedExtensions.ftl', 'unified-extensions-empty-content-explain-extensions-onboarding2 = We’ve got recommendations to help you improve focus, privacy, and more.', 'unified-extensions-empty-content-explain-extensions-onboarding2 = Add extensions to block ads, fill passwords and more. Select “{ unified-extensions-manage-extensions.label }” to get started.'),
+  # Barra de cima como no Nium Electron: sem botão Início, endereço logo após o recarregar
+  ('browser/components/customizableui/CustomizableUI.sys.mjs',
+   '      Services.policies.isAllowed("removeHomeButtonByDefault")\n        ? null\n        : "home-button",\n      "spring",\n      "vertical-spacer",',
+   '      null, // Nium: sem botão Início e sem espaço antes do endereço\n      "vertical-spacer",'),
   # about:logins: tira as instruções de sincronizar com conta Mozilla
   ('browser/components/aboutlogins/content/aboutLogins.html', '        <ul>\n          <li data-l10n-id="login-intro-instructions-fxa2">', '        <ul hidden>\n          <li data-l10n-id="login-intro-instructions-fxa2">'),
 ]
@@ -236,7 +252,8 @@ def revert():
   subprocess.call(['git', 'checkout', '--', 'browser/app/profile/firefox.js',
                    'browser/themes/addons/jar.mn', 'browser/themes/BuiltInThemeConfig.sys.mjs',
                    'browser/themes/ThemesList.sys.mjs',
-                   'toolkit/themes/shared/design-system/dist/tokens-shared.css']
+                   'toolkit/themes/shared/design-system/dist/tokens-shared.css',
+                   'browser/themes/shared/browser-shared.css']
                   + sorted({r for r, _, _ in PATCHES}) + _mascots() + list(LOGO_ICONS) + list(PRIVATE_ICONS), cwd=FIREFOX)
   m = FIREFOX / 'mozconfig'
   if m.exists() and 'Nium' in m.read_text(encoding='utf-8'):
@@ -258,6 +275,7 @@ def main():
   branding()
   theme()
   tokens()
+  chrome_css()
   art()
   patches()
   prefs()

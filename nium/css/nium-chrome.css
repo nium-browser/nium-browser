@@ -1,0 +1,51 @@
+/* --- Nium: início --- Visual do Nium (o mesmo do Nium Electron) na janela do navegador. */
+
+/* Fonte e cantos do Nium Electron: 8px nas abas e na barra de endereço, 12px nos menus. */
+:root {
+  font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --tab-border-radius: 8px !important;
+  --toolbarbutton-border-radius: 6px !important;
+  --tab-box-shadow-selected: none !important;
+  --popup-border-radius: 12px !important;
+  --arrowpanel-border-radius: 12px !important;
+}
+
+#urlbar,
+.urlbar:not([in-page]) {
+  --urlbar-border-radius: 8px !important;
+  --urlbarview-border-radius: 10px !important;
+}
+
+/* Barra lateral aberta: logo "nium." no topo, como no Nium Electron. */
+sidebar-main[expanded] > #vertical-tabs[visible] {
+  flex-direction: column;
+
+  &::before {
+    content: "nium.";
+    flex: none;
+    padding: 8px 12px 12px;
+    font: 700 21px/1.1 "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+    letter-spacing: -0.04em;
+    color: var(--toolbox-text-color, currentColor);
+  }
+
+  > #tabbrowser-tabs {
+    flex: 1;
+    min-height: 0;
+  }
+}
+
+/* Abas na lateral: linha de 36px, aba ativa sem sombra nem borda, como no Electron. */
+#tabbrowser-tabs[orient="vertical"] {
+  --tab-min-height: 36px;
+
+  .tab-background {
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .tab-label {
+    font-size: 13px;
+  }
+}
+/* --- Nium: fim --- */

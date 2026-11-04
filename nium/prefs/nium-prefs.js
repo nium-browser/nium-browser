@@ -58,3 +58,6 @@ pref("extensions.htmlaboutaddons.recommendations.enabled", false);
 pref("identity.fxaccounts.toolbar.enabled", false);
 pref("browser.tabs.firefox-view", false);
 pref("browser.referrals.enabled", false);
+
+// Barra lateral do Nium: só favoritos e histórico (sem chat de IA de terceiros, sem abas sincronizadas)
+pref("sidebar.main.tools", "bookmarks,history");
