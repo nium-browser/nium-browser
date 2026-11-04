@@ -165,6 +165,41 @@ def chrome_scripts():
   say(f'scripts do Nium na janela ({n} atualizados)')
 
 
+UBO_ID = 'uBlock0@raymondhill.net'
+UBO_URL = 'https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi'
+
+
+def ublock():
+  """Nium Shield = uBlock Origin (assinado pela Mozilla), instalado no perfil de teste."""
+  import time
+  import urllib.request
+  cache = KIT.parent / '.cache' / 'ublock-origin.xpi'
+  cache.parent.mkdir(exist_ok=True)
+  if not cache.exists() or time.time() - cache.stat().st_mtime > 7 * 86400:
+    try:
+      req = urllib.request.Request(UBO_URL, headers={'User-Agent': 'Nium-build'})
+      with urllib.request.urlopen(req, timeout=60) as r:
+        data = r.read()
+      if data[:2] != b'PK':
+        raise ValueError('o arquivo baixado não é um .xpi')
+      cache.write_bytes(data)
+      say(f'uBlock Origin baixado ({len(data) // 1024} KB)')
+    except Exception as e:
+      if not cache.exists():
+        say(f'AVISO: não consegui baixar o uBlock Origin ({e}); o Nium Shield fica sem bloqueio por enquanto')
+        return
+      say(f'AVISO: não consegui atualizar o uBlock Origin ({e}); uso o que já estava baixado')
+  profile = FIREFOX / 'obj-nium' / 'tmp' / 'profile-default'
+  if not profile.exists():
+    say('AVISO: rode ./mach run uma vez e depois o apply.py de novo, para instalar o uBlock Origin no perfil')
+    return
+  dest = profile / 'extensions' / (UBO_ID + '.xpi')
+  dest.parent.mkdir(exist_ok=True)
+  if not dest.exists() or dest.read_bytes() != cache.read_bytes():
+    shutil.copyfile(cache, dest)
+  say('Nium Shield: uBlock Origin no perfil de teste')
+
+
 def prefs():
   p = FIREFOX / 'browser' / 'app' / 'profile' / 'firefox.js'
   text = p.read_text(encoding='utf-8')
@@ -293,6 +328,13 @@ PATCHES = [
   ('browser/components/sidebar/sidebar-main.mjs',
    '          </button-group>\n        </div>\n      </div>\n    `;\n  }\n}',
    '          </button-group>\n        </div>\n        <slot name="nium-bottom"></slot>\n      </div>\n    `;\n  }\n}'),
+  # Tela dividida: fundo da escolha de aba com as cores do Nium (era o roxo do Firefox)
+  ('browser/components/tabbrowser/content/opentabs.css',
+   'background: no-repeat light-dark(linear-gradient(#f0ebfd, #f7ebeb), linear-gradient(#332a50, #3f2a2f));',
+   'background: no-repeat light-dark(linear-gradient(#f7f7f8, #eef3f0), linear-gradient(#1f1f22, #1b2320)); /* Nium */'),
+  ('browser/components/tabbrowser/content/opentabs-splitview.css',
+   'background: linear-gradient(to bottom, light-dark(#f0ebfd, #332a50) 0%, light-dark(#f1ebf8, #342a47) 95%, transparent 100%);',
+   'background: linear-gradient(to bottom, light-dark(#f7f7f8, #1f1f22) 0%, light-dark(#f6f7f7, #1f2121) 95%, transparent 100%); /* Nium */'),
   # about:logins: tira as instruções de sincronizar com conta Mozilla
   ('browser/components/aboutlogins/content/aboutLogins.html', '        <ul>\n          <li data-l10n-id="login-intro-instructions-fxa2">', '        <ul hidden>\n          <li data-l10n-id="login-intro-instructions-fxa2">'),
 ]
@@ -355,6 +397,7 @@ def main():
   art()
   patches()
   prefs()
+  ublock()
   mozconfig()
   say('pronto. Agora: ./mach build && ./mach run')
 

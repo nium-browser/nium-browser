@@ -195,6 +195,11 @@
   border-radius: 50%;
   background: #c9a86a;
   box-shadow: 0 0 0 2px color-mix(in srgb, #c9a86a 22%, transparent);
+
+  &[on] {
+    background: #86b39b;
+    box-shadow: 0 0 0 2px color-mix(in srgb, #86b39b 22%, transparent);
+  }
 }
 .nium-avatar {
   display: grid;

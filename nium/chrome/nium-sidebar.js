@@ -102,6 +102,14 @@ var NiumSidebar = {
     this.watchLayout();
     this.watchLoading();
     this.takeOverSearchKey();
+    this.updateShieldDot();
+    // O uBlock pode terminar de ligar depois da janela abrir.
+    setTimeout(() => this.updateShieldDot(), 3000);
+    try {
+      const { AddonManager } = ChromeUtils.importESModule("resource://gre/modules/AddonManager.sys.mjs");
+      const refresh = () => setTimeout(() => this.updateShieldDot(), 500);
+      AddonManager.addAddonListener({ onEnabled: refresh, onDisabled: refresh, onInstalled: refresh, onUninstalled: refresh });
+    } catch (e) {}
   },
 
   // ---- buscar abas na própria lateral (como no Electron) ----
@@ -296,7 +304,7 @@ var NiumSidebar = {
       [
         this.icon("chrome://browser/skin/tracking-protection.svg"),
         this.el("span", { class: "nium-sb-text", text: t.shield }),
-        this.el("span", { class: "nium-shield-dot" }),
+        (this.shieldDot = this.el("span", { class: "nium-shield-dot" })),
       ]
     );
     const you = this.el(
@@ -311,12 +319,37 @@ var NiumSidebar = {
     return this.el("div", { id: "nium-sidebar-bottom", class: "nium-sb-block" }, [shield, you]);
   },
 
+  // Nium Shield = uBlock Origin. O botão abre o painel do uBlock; sem ele, o painel de
+  // proteção contra rastreadores do Firefox.
+  UBO_ID: "uBlock0@raymondhill.net",
+
+  ublockAction() {
+    try {
+      const extension = WebExtensionPolicy.getByID(this.UBO_ID)?.extension;
+      if (!extension) return null;
+      const { ExtensionParent } = ChromeUtils.importESModule("resource://gre/modules/ExtensionParent.sys.mjs");
+      return ExtensionParent.apiManager.global.browserActionFor?.(extension) || null;
+    } catch (e) {
+      return null;
+    }
+  },
+
   openShield() {
+    const action = this.ublockAction();
+    if (action) {
+      action.triggerAction(window);
+      return;
+    }
     try {
       gProtectionsHandler.showProtectionsPopup({});
     } catch (e) {
       openTrustedLinkIn("about:protections", "tab");
     }
+  },
+
+  // Bolinha do Shield: verde com o uBlock ligado, amarela sem ele.
+  updateShieldDot() {
+    this.shieldDot?.toggleAttribute("on", !!WebExtensionPolicy.getByID(this.UBO_ID));
   },
 
   // ---- painel à direita (como no Nium Electron) ----

@@ -78,3 +78,7 @@ pref("browser.startup.homepage", "about:newtab");
 // Barras mais finas (modo compacto do Firefox)
 pref("browser.compactmode.show", true);
 pref("browser.uidensity", 1);
+
+// Nium Shield (uBlock Origin) vem na pasta do perfil: liga sem perguntar só as extensões
+// dessa pasta (as de outros lugares continuam pedindo confirmação)
+pref("extensions.autoDisableScopes", 14);
