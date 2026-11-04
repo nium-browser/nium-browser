@@ -61,3 +61,8 @@ pref("browser.referrals.enabled", false);
 
 // Barra lateral do Nium: só favoritos e histórico (sem chat de IA de terceiros, sem abas sincronizadas)
 pref("sidebar.main.tools", "bookmarks,history");
+
+// Sem o aviso "arraste para fixar" na lateral (aparecia quebrado) e sem barra de favoritos,
+// como no Nium Electron (Ctrl+Shift+B mostra a barra quando quiser)
+pref("sidebar.verticalTabs.dragToPinPromo.dismissed", true);
+pref("browser.toolbars.bookmarks.visibility", "never");
