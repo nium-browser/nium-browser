@@ -21,21 +21,59 @@
   const $ = s => document.querySelector(s);
   const svg = name => `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] || ICONS.globe}</svg>`;
 
-  // ---- dados (guardados nesta página; se o armazenamento falhar, usa os de fábrica) ----
+  // ---- dados: guardados no IndexedDB da nova aba (o localStorage não sobrevive aqui) ----
   let memory = null;
-  function load() {
+  const clean = list =>
+    Array.isArray(list) ? list.filter(x => x && typeof x.url === "string").slice(0, MAX) : null;
+
+  function openDB() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open("nium-newtab", 1);
+      req.onupgradeneeded = () => req.result.createObjectStore("kv");
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  async function readStored() {
     try {
-      const raw = localStorage.getItem(KEY);
-      if (raw) {
-        const list = JSON.parse(raw);
-        if (Array.isArray(list)) return list.filter(x => x && typeof x.url === "string").slice(0, MAX);
-      }
-    } catch (e) {}
-    return memory || DEFAULTS.slice();
+      const db = await openDB();
+      const value = await new Promise((resolve, reject) => {
+        const req = db.transaction("kv").objectStore("kv").get(KEY);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+      db.close();
+      if (clean(value)) return clean(value);
+    } catch (e) {
+      console.warn("Nium: não consegui ler os atalhos", e);
+    }
+    return null;
+  }
+  async function writeStored(list) {
+    try {
+      const db = await openDB();
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction("kv", "readwrite");
+        tx.objectStore("kv").put(list, KEY);
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(tx.error);
+      });
+      db.close();
+    } catch (e) {
+      console.warn("Nium: não consegui guardar os atalhos", e);
+    }
+  }
+  function load() {
+    return (memory || DEFAULTS).slice();
   }
   function save(list) {
-    memory = list;
-    try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (e) {}
+    memory = list.slice();
+    writeStored(memory);
+  }
+  async function refresh() {
+    const stored = await readStored();
+    if (stored) memory = stored;
+    if (!editing) render();
   }
 
   function normalizeUrl(text) {
@@ -90,7 +128,7 @@
         render();
       });
       a.addEventListener("click", e => { if (editing) e.preventDefault(); });
-      a.append(icon, label, remove);
+      a.append(remove, icon, label);
       box.appendChild(a);
     });
     if (load().length < MAX) {
@@ -175,6 +213,11 @@
   });
 
   render();
+  refresh();
+  // Outra aba pode ter mudado os atalhos: relê ao voltar para esta.
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") refresh();
+  });
   // Foco na pesquisa ao abrir, como no Electron (a barra de endereço continua com Ctrl+L).
   $("#home-search").focus();
 })();

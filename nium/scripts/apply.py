@@ -260,7 +260,9 @@ PATCHES = [
   ('browser/locales/en-US/browser/browserSets.ftl', 'search-tabs-shortcut =\n    .key = A', 'search-tabs-shortcut =\n    .key = K'),
   # Ctrl+B = abrir/fechar a barra lateral (no Firefox era favoritos na lateral)
   ('browser/base/content/browser-sets.inc.xhtml', '    <key id="viewBookmarksSidebarKb"\n         data-l10n-id="bookmark-show-sidebar-shortcut"\n         modifiers="accel"/>', '    <key id="viewBookmarksSidebarKb"/>'),
-  ('browser/base/content/browser-sets.inc.xhtml', '         modifiers="control,alt"\n#endif\n        />', '         modifiers="accel"\n#endif\n        />'),
+  ('browser/base/content/browser-sets.inc.xhtml',
+   '    <key id="toggleSidebarKb"\n         data-l10n-id="toggle-sidebar-shortcut"\n#ifdef XP_MACOSX\n         modifiers="control"\n#else\n         modifiers="control,alt"\n#endif',
+   '    <key id="toggleSidebarKb"\n         data-l10n-id="toggle-sidebar-shortcut"\n#ifdef XP_MACOSX\n         modifiers="control"\n#else\n         modifiers="accel"\n#endif'),
   ('browser/locales/en-US/browser/browserSets.ftl', 'toggle-sidebar-shortcut =\n    .key = Z', 'toggle-sidebar-shortcut =\n    .key = B'),
   # Ctrl+Alt+A = painel de IA
   ('browser/locales/en-US/browser/browserSets.ftl', 'ai-chatbot-sidebar-shortcut =\n    .key = X', 'ai-chatbot-sidebar-shortcut =\n    .key = A'),
@@ -276,11 +278,12 @@ def patches():
     if not p.exists():
       say(f'AVISO: {rel} não existe (pulei)'); miss += 1; continue
     text = p.read_text(encoding='utf-8')
-    if new in text:
-      ok += 1; continue
-    if old not in text:
-      say(f'AVISO: não achei o texto em {rel} (o Firefox mudou?) — pulei: {old[:50]!r}'); miss += 1; continue
-    write_if_changed(p, text.replace(old, new, 1)); ok += 1
+    if old in text:
+      write_if_changed(p, text.replace(old, new, 1)); ok += 1
+    elif new in text:
+      ok += 1   # já aplicado
+    else:
+      say(f'AVISO: não achei o texto em {rel} (o Firefox mudou?) — pulei: {old[:50]!r}'); miss += 1
   say(f'textos do Firefox ajustados ({ok} ok, {miss} pulados)')
 
 
