@@ -465,6 +465,17 @@ panel {
 }
 /* Anotações (Nium Notes) no painel: mais largo, sem margens internas */
 #nium-panel[kind="notes"] { width: 440px; }
+/* Expandido: cobre a página (fica por cima dela, a página continua aberta embaixo) */
+#nium-panel[wide] {
+  position: fixed;
+  z-index: 10;
+  top: calc(var(--nium-toolbox-height, 40px) + 0px);
+  bottom: 8px;
+  inset-inline-start: calc(var(--nium-sidebar-width, 0px) + 8px);
+  inset-inline-end: 0;
+  width: auto;
+  margin: 0 8px 0 0;
+}
 .nium-notes-frame {
   flex: 1;
   min-height: 0;

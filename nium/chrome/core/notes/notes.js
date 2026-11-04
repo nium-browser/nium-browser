@@ -80,7 +80,7 @@
     el.saved.textContent = 'Salvando…';
     clearTimeout(saveTimer);
     saveTimer = setTimeout(async () => {
-      try { await NiumStore.set(KEY, data); el.saved.textContent = 'Salvo'; }
+      try { await NiumStore.set(KEY, data); saveTimer = null; el.saved.textContent = 'Salvo'; }
       catch (error) { el.saved.textContent = 'Não salvo'; toast('Erro ao salvar: ' + error.message); }
     }, 400);
   }

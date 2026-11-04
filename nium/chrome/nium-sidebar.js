@@ -27,7 +27,8 @@ var NiumSidebar = {
       settings: "Settings",
       mySpaces: "My spaces",
       notes: "Notes",
-      openFull: "Open in a tab",
+      expand: "Expand",
+      shrink: "Back to the side",
       close: "Close",
       spacesIntro: "A set of tabs for each project. Saved only on this device.",
       saveCurrent: "Save current tabs",
@@ -58,7 +59,8 @@ var NiumSidebar = {
       settings: "Configurações",
       mySpaces: "Meus espaços",
       notes: "Anotações",
-      openFull: "Abrir numa aba",
+      expand: "Expandir",
+      shrink: "Voltar para o lado",
       close: "Fechar",
       spacesIntro: "Um conjunto de abas para cada projeto. Salvo só neste dispositivo.",
       saveCurrent: "Salvar abas atuais",
@@ -374,7 +376,7 @@ var NiumSidebar = {
     ]);
     this.openFullButton = this.el(
       "button",
-      { class: "nium-icon-button", title: this.t.openFull, hidden: "true", onclick: () => this.openNotesTab() },
+      { class: "nium-icon-button", title: this.t.expand, hidden: "true", onclick: () => this.setNotesWide(!this.notesWide) },
       [this.icon("chrome://browser/skin/fullscreen.svg")]
     );
     this.panel = this.el("div", { id: "nium-panel", hidden: "true" }, [
@@ -399,7 +401,8 @@ var NiumSidebar = {
     this.spacesButton?.toggleAttribute("open", name === "spaces");
     this.notesButton?.toggleAttribute("open", name === "notes");
     this.openFullButton.hidden = name !== "notes";
-    if (this.notesFrame) this.notesFrame.hidden = name !== "notes";
+    if (this.notesFrame && name !== "notes") this.notesFrame.hidden = true;
+    if (name !== "notes") this.panel.removeAttribute("wide");
     this.panelBody.hidden = name === "notes";
     if (name === "spaces") {
       this.panelIcon.src = "chrome://global/skin/icons/folder.svg";
@@ -409,12 +412,15 @@ var NiumSidebar = {
       this.panelIcon.src = "chrome://global/skin/icons/edit-outline.svg";
       this.panelTitle.textContent = this.t.notes;
       this.showNotes();
+      this.applyNotesWide();
     }
   },
 
   closePanel() {
     if (!this.panel) return;
     this.panel.hidden = true;
+    this.panelWasClosed = true;
+    this.panel.removeAttribute("wide");
     this.openPanelName = null;
     this.spacesButton?.removeAttribute("open");
     this.notesButton?.removeAttribute("open");
@@ -425,13 +431,35 @@ var NiumSidebar = {
 
   showNotes() {
     if (!this.notesFrame) {
-      // Fica carregado entre aberturas do painel, para não perder o que está sendo escrito.
       const frame = this.el("iframe", { class: "nium-notes-frame", src: this.NOTES_URL + "?panel" });
-      frame.addEventListener("load", () => this.guardNotesLinks(frame));
+      frame.addEventListener("load", () => {
+        this.guardNotesLinks(frame);
+        this.applyNotesWide();
+      });
       this.panel.appendChild(frame);
       this.notesFrame = frame;
+    } else if (this.notesFrame.hidden || this.panelWasClosed) {
+      // Relê as notas do disco ao reabrir (outra janela pode ter mudado alguma).
+      this.notesFrame.contentWindow?.location.reload();
     }
+    this.panelWasClosed = false;
     this.notesFrame.hidden = false;
+  },
+
+  // Expandir: o painel de anotações cobre a página, com o layout completo do Nium Notes.
+  setNotesWide(wide) {
+    this.notesWide = wide;
+    this.applyNotesWide();
+  },
+
+  applyNotesWide() {
+    const wide = !!this.notesWide && this.openPanelName === "notes";
+    this.panel?.toggleAttribute("wide", wide);
+    const img = this.openFullButton?.querySelector("img");
+    if (img) img.src = wide ? "chrome://browser/skin/fullscreen-exit.svg" : "chrome://browser/skin/fullscreen.svg";
+    if (this.openFullButton) this.openFullButton.title = wide ? this.t.shrink : this.t.expand;
+    const root = this.notesFrame?.contentDocument?.documentElement;
+    if (root) root.toggleAttribute("data-panel", !wide);
   },
 
   // Links dentro das notas abrem numa aba nova, nunca dentro do painel.
@@ -447,12 +475,6 @@ var NiumSidebar = {
       },
       true
     );
-  },
-
-  openNotesTab() {
-    const tab = gBrowser.addTrustedTab(this.NOTES_URL);
-    gBrowser.selectedTab = tab;
-    this.closePanel();
   },
 
   // ---- espaços: conjuntos de abas guardados ----
