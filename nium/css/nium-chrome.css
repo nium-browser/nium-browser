@@ -8,6 +8,41 @@
   --tab-box-shadow-selected: none !important;
   --popup-border-radius: 12px !important;
   --arrowpanel-border-radius: 12px !important;
+  /* Lateral recolhida mais fina (abas de 32px + 6px de cada lado = 44px) */
+  --tab-margin-inline-inner: 6px !important;
+}
+
+/* Seletor do buscador com o mesmo canto da caixa de endereço (8px), não redondo */
+.searchmode-switcher {
+  --button-border-radius: 6px;
+  &::part(button) { border-radius: 6px; }
+}
+
+/* Carregando: uma linha gira em volta da caixa de endereço (nium-sidebar.js marca nium-loading) */
+@property --nium-loading-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+@keyframes nium-loading-spin {
+  to { --nium-loading-angle: 360deg; }
+}
+#urlbar[nium-loading]:not([focused]) > .urlbar-background::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  padding: 1.5px;
+  border-radius: inherit;
+  background: conic-gradient(from var(--nium-loading-angle), transparent 0deg 250deg, var(--color-accent-primary, #9cbfae) 330deg, transparent 360deg);
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: nium-loading-spin 1s linear infinite;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  #urlbar[nium-loading]:not([focused]) > .urlbar-background::after {
+    animation: none;
+    background: color-mix(in srgb, var(--color-accent-primary, #9cbfae) 60%, transparent);
+  }
 }
 
 #urlbar,
@@ -18,7 +53,7 @@
 
 /* Abas na lateral: linha de 36px, aba ativa sem sombra nem borda, como no Electron. */
 #tabbrowser-tabs[orient="vertical"] {
-  --tab-min-height: 36px;
+  --tab-min-height: 32px;
 
   .tab-background {
     border: 0 !important;
@@ -222,11 +257,12 @@ sidebar-main:not([expanded]) > .nium-sb-block {
   /* A lateral do Firefox numera a ordem dos itens da janela; o painel fica sempre por último (à direita). */
   order: 1000 !important;
   width: 368px;
-  margin: 0 8px 8px 0;
+  margin: 0 8px 8px 8px;
   border-radius: 12px;
   background: var(--nium-surface);
   color: var(--nium-ink);
-  box-shadow: 0 0 0 1px var(--nium-line);
+  border: 1px solid light-dark(rgba(0,0,0,.12), rgba(255,255,255,.12));
+  box-shadow: 0 6px 18px -8px rgba(0,0,0,.45);
   font-size: 13px;
   overflow: hidden;
 

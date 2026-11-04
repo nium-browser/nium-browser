@@ -74,3 +74,7 @@ pref("browser.startup.homepage.abouthome_cache.enabled", false);
 // para os atalhos ficarem guardados num lugar só
 pref("browser.newtab.preload", false);
 pref("browser.startup.homepage", "about:newtab");
+
+// Barras mais finas (modo compacto do Firefox)
+pref("browser.compactmode.show", true);
+pref("browser.uidensity", 1);

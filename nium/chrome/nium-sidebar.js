@@ -100,6 +100,21 @@ var NiumSidebar = {
     main.append(top, bottom);
     this.buildPanel();
     this.watchLayout();
+    this.watchLoading();
+  },
+
+  // Marca a caixa de endereço enquanto a aba atual carrega (a linha que gira é CSS).
+  watchLoading() {
+    const urlbar = document.getElementById("urlbar");
+    if (!urlbar) return;
+    const update = () => urlbar.toggleAttribute("nium-loading", !!gBrowser.selectedTab?.hasAttribute("busy"));
+    gBrowser.tabContainer.addEventListener("TabSelect", update);
+    new MutationObserver(update).observe(gBrowser.tabContainer, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["busy"],
+    });
+    update();
   },
 
   // ---- ajudantes de DOM ----
