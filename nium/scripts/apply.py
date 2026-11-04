@@ -48,12 +48,53 @@ def branding():
   say(f'marca Nium em browser/branding/nium ({n} arquivos atualizados)')
 
 
+THEME_ID = 'nium-theme@nium.app'
+THEME_JAR = (
+    '\n# Nium\n'
+    '  content/builtin-themes/nium/manifest.json       (nium/manifest.json)\n'
+    '  content/builtin-themes/nium/icon.svg            (nium/icon.svg)\n'
+    '  content/builtin-themes/nium/preview.svg         (nium/preview.svg)\n')
+THEME_CONFIG = (
+    '  [\n'
+    '    "%s",\n'
+    '    {\n'
+    '      version: "%s",\n'
+    '      path: "resource://builtin-themes/nium/",\n'
+    '      inApp: true,\n'
+    '    },\n'
+    '  ], // Nium\n')
+
+
+def theme():
+  """Tema Nium embutido (cores do Nium, claro e escuro), ativado por padrão."""
+  import json
+  addons = FIREFOX / 'browser' / 'themes' / 'addons'
+  copy_tree(KIT / 'themes' / 'nium', addons / 'nium')
+  jar = addons / 'jar.mn'
+  text = jar.read_text(encoding='utf-8')
+  if 'builtin-themes/nium/' not in text:
+    write_if_changed(jar, text.rstrip('\n') + '\n' + THEME_JAR)
+  version = json.loads((KIT / 'themes' / 'nium' / 'manifest.json').read_text(encoding='utf-8'))['version']
+  cfg = FIREFOX / 'browser' / 'themes' / 'BuiltInThemeConfig.sys.mjs'
+  text = cfg.read_text(encoding='utf-8')
+  if THEME_ID in text:
+    start = text.index('  [\n    "%s"' % THEME_ID)
+    end = text.index('], // Nium\n', start) + len('], // Nium\n')
+    text = text[:start] + text[end:]
+  anchor = '\n]);'
+  if text.count(anchor) != 1:
+    sys.exit('[nium] ERRO: não achei o fim da lista em BuiltInThemeConfig.sys.mjs; me mande este erro.')
+  write_if_changed(cfg, text.replace(anchor, '\n' + THEME_CONFIG % (THEME_ID, version) + ']);'))
+  say('tema Nium embutido')
+
+
 def prefs():
   p = FIREFOX / 'browser' / 'app' / 'profile' / 'firefox.js'
   text = p.read_text(encoding='utf-8')
   if BEGIN in text:
     text = text[:text.index(BEGIN)].rstrip('\n') + '\n'
   block = (KIT / 'prefs' / 'nium-prefs.js').read_text(encoding='utf-8').strip('\n')
+  block += '\n\n// Tema Nium por padrão\npref("extensions.activeThemeID", "%s");' % THEME_ID
   write_if_changed(p, text + '\n' + BEGIN + '\n' + block + '\n' + END + '\n')
   say('preferências do Nium no firefox.js')
 
@@ -70,7 +111,9 @@ def mozconfig():
 
 def revert():
   shutil.rmtree(FIREFOX / 'browser' / 'branding' / 'nium', ignore_errors=True)
-  subprocess.call(['git', 'checkout', '--', 'browser/app/profile/firefox.js'], cwd=FIREFOX)
+  shutil.rmtree(FIREFOX / 'browser' / 'themes' / 'addons' / 'nium', ignore_errors=True)
+  subprocess.call(['git', 'checkout', '--', 'browser/app/profile/firefox.js',
+                   'browser/themes/addons/jar.mn', 'browser/themes/BuiltInThemeConfig.sys.mjs'], cwd=FIREFOX)
   m = FIREFOX / 'mozconfig'
   if m.exists() and 'Nium' in m.read_text(encoding='utf-8'):
     m.unlink()
@@ -89,6 +132,7 @@ def main():
   if args.revert:
     return revert()
   branding()
+  theme()
   prefs()
   mozconfig()
   say('pronto. Agora: ./mach build && ./mach run')

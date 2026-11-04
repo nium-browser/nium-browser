@@ -31,6 +31,7 @@ No Artifact Mode o C++ vem pronto da Mozilla: mudanças de interface (JS/CSS/HTM
 |---|---|
 | `nium/branding/nium` | Marca Nium (nome, ícones, instalador), copiada para `browser/branding/nium` |
 | `nium/branding/source` | Origem dos ícones (SVG) e o gerador |
+| `nium/themes/nium` | Tema Nium embutido (claro/escuro, verde do Nium), ativado por padrão |
 | `nium/prefs/nium-prefs.js` | Padrões do Nium: abas na lateral, sem telemetria, nova aba sem patrocínio |
 | `nium/mozconfig` | Configuração de compilação (Artifact Mode + marca Nium) |
 | `nium/scripts/apply.py` | Aplica tudo ao código do Firefox (`--revert` desfaz) |

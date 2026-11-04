@@ -1,0 +1,118 @@
+{
+  "manifest_version": 2,
+
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "nium-theme@nium.app"
+    }
+  },
+
+  "name": "Nium",
+  "description": "The Nium look: calm greys and Nium green, light or dark with your system.",
+  "author": "Nium",
+  "version": "1.0.0",
+  "icons": { "32": "icon.svg" },
+
+  "theme": {
+    "colors": {
+      "frame": "#e9e9eb",
+      "frame_inactive": "#ededef",
+      "toolbar": "#f7f7f8",
+      "toolbar_text": "#1d1d1f",
+      "icons": "#3a3a3d",
+      "icons_attention": "#3f6f5c",
+      "button_background_hover": "rgba(0, 0, 0, .05)",
+      "button_background_active": "rgba(0, 0, 0, .085)",
+      "toolbar_field": "#ffffff",
+      "toolbar_field_text": "#1d1d1f",
+      "toolbar_field_focus": "#ffffff",
+      "toolbar_field_text_focus": "#1d1d1f",
+      "toolbar_field_border": "rgba(0, 0, 0, .08)",
+      "toolbar_field_border_focus": "#3f6f5c",
+      "toolbar_field_highlight": "rgba(63, 111, 92, .22)",
+      "toolbar_field_highlight_text": "#1d1d1f",
+      "toolbar_top_separator": "transparent",
+      "toolbar_bottom_separator": "transparent",
+      "toolbar_vertical_separator": "rgba(0, 0, 0, .11)",
+      "bookmark_text": "#1d1d1f",
+      "tab_selected": "#ffffff",
+      "tab_text": "#1d1d1f",
+      "tab_background_text": "#3a3a3d",
+      "tab_background_separator": "rgba(0, 0, 0, .11)",
+      "tab_line": "transparent",
+      "tab_loading": "#3f6f5c",
+      "popup": "#ffffff",
+      "popup_text": "#1d1d1f",
+      "popup_border": "rgba(0, 0, 0, .1)",
+      "popup_highlight": "rgba(63, 111, 92, .12)",
+      "popup_highlight_text": "#1d1d1f",
+      "sidebar": "#e9e9eb",
+      "sidebar_text": "#1d1d1f",
+      "sidebar_border": "transparent",
+      "sidebar_highlight": "#3f6f5c",
+      "sidebar_highlight_text": "#ffffff",
+      "ntp_background": "#f6f6f7",
+      "ntp_text": "#1d1d1f",
+      "focus_outline": "#3f6f5c",
+      "accent": "#3f6f5c",
+      "accent_hover": "#335c4c",
+      "accent_text": "#ffffff"
+    }
+  },
+
+  "dark_theme": {
+    "colors": {
+      "frame": "#171719",
+      "frame_inactive": "#1c1c1f",
+      "toolbar": "#1f1f22",
+      "toolbar_text": "#ececee",
+      "icons": "#c8c8cc",
+      "icons_attention": "#9cbfae",
+      "button_background_hover": "rgba(255, 255, 255, .055)",
+      "button_background_active": "rgba(255, 255, 255, .09)",
+      "toolbar_field": "#28282b",
+      "toolbar_field_text": "#ececee",
+      "toolbar_field_focus": "#1c1c1e",
+      "toolbar_field_text_focus": "#ececee",
+      "toolbar_field_border": "rgba(255, 255, 255, .06)",
+      "toolbar_field_border_focus": "#9cbfae",
+      "toolbar_field_highlight": "rgba(156, 191, 174, .28)",
+      "toolbar_field_highlight_text": "#ffffff",
+      "toolbar_top_separator": "transparent",
+      "toolbar_bottom_separator": "transparent",
+      "toolbar_vertical_separator": "rgba(255, 255, 255, .09)",
+      "bookmark_text": "#ececee",
+      "tab_selected": "#2a2a2d",
+      "tab_text": "#f2f2f4",
+      "tab_background_text": "#c8c8cc",
+      "tab_background_separator": "rgba(255, 255, 255, .09)",
+      "tab_line": "transparent",
+      "tab_loading": "#9cbfae",
+      "popup": "#232326",
+      "popup_text": "#ececee",
+      "popup_border": "rgba(255, 255, 255, .08)",
+      "popup_highlight": "rgba(156, 191, 174, .16)",
+      "popup_highlight_text": "#ffffff",
+      "sidebar": "#171719",
+      "sidebar_text": "#ececee",
+      "sidebar_border": "transparent",
+      "sidebar_highlight": "#2f4a3e",
+      "sidebar_highlight_text": "#ffffff",
+      "ntp_background": "#1c1c1e",
+      "ntp_text": "#ececee",
+      "focus_outline": "#9cbfae",
+      "accent": "#9cbfae",
+      "accent_hover": "#88ad9b",
+      "accent_text": "#0b1020"
+    }
+  },
+
+  "theme_experiment": {
+    "colors": {
+      "focus_outline": "--focus-outline-color",
+      "accent": "--color-accent-primary",
+      "accent_hover": "--color-accent-primary-hover",
+      "accent_text": "--button-text-color-primary"
+    }
+  }
+}
