@@ -26,6 +26,8 @@ var NiumSidebar = {
       yourSpace: "Your space",
       settings: "Settings",
       mySpaces: "My spaces",
+      notes: "Notes",
+      openFull: "Open in a tab",
       close: "Close",
       spacesIntro: "A set of tabs for each project. Saved only on this device.",
       saveCurrent: "Save current tabs",
@@ -55,6 +57,8 @@ var NiumSidebar = {
       yourSpace: "Seu espaço",
       settings: "Configurações",
       mySpaces: "Meus espaços",
+      notes: "Anotações",
+      openFull: "Abrir numa aba",
       close: "Fechar",
       spacesIntro: "Um conjunto de abas para cada projeto. Salvo só neste dispositivo.",
       saveCurrent: "Salvar abas atuais",
@@ -316,7 +320,13 @@ var NiumSidebar = {
         this.icon("chrome://global/skin/icons/settings.svg"),
       ]
     );
-    return this.el("div", { id: "nium-sidebar-bottom", class: "nium-sb-block" }, [shield, you]);
+    const notes = this.el(
+      "button",
+      { class: "nium-sb-row", title: t.notes, onclick: () => this.togglePanel("notes") },
+      [this.icon("chrome://global/skin/icons/edit-outline.svg"), this.el("span", { class: "nium-sb-text", text: t.notes })]
+    );
+    this.notesButton = notes;
+    return this.el("div", { id: "nium-sidebar-bottom", class: "nium-sb-block" }, [notes, shield, you]);
   },
 
   // Nium Shield = uBlock Origin. O botão abre o painel do uBlock; sem ele, o painel de
@@ -362,8 +372,13 @@ var NiumSidebar = {
     const close = this.el("button", { class: "nium-icon-button", title: this.t.close, onclick: () => this.closePanel() }, [
       this.icon("chrome://global/skin/icons/close.svg"),
     ]);
+    this.openFullButton = this.el(
+      "button",
+      { class: "nium-icon-button", title: this.t.openFull, hidden: "true", onclick: () => this.openNotesTab() },
+      [this.icon("chrome://browser/skin/fullscreen.svg")]
+    );
     this.panel = this.el("div", { id: "nium-panel", hidden: "true" }, [
-      this.el("div", { class: "nium-panel-header" }, [this.panelIcon, this.panelTitle, close]),
+      this.el("div", { class: "nium-panel-header" }, [this.panelIcon, this.panelTitle, this.openFullButton, close]),
       this.panelBody,
     ]);
     browser.appendChild(this.panel);
@@ -380,10 +395,20 @@ var NiumSidebar = {
     }
     this.openPanelName = name;
     this.panel.hidden = false;
+    this.panel.setAttribute("kind", name);
     this.spacesButton?.toggleAttribute("open", name === "spaces");
+    this.notesButton?.toggleAttribute("open", name === "notes");
+    this.openFullButton.hidden = name !== "notes";
+    if (this.notesFrame) this.notesFrame.hidden = name !== "notes";
+    this.panelBody.hidden = name === "notes";
     if (name === "spaces") {
+      this.panelIcon.src = "chrome://global/skin/icons/folder.svg";
       this.panelTitle.textContent = this.t.mySpaces;
       this.renderSpaces();
+    } else if (name === "notes") {
+      this.panelIcon.src = "chrome://global/skin/icons/edit-outline.svg";
+      this.panelTitle.textContent = this.t.notes;
+      this.showNotes();
     }
   },
 
@@ -392,6 +417,42 @@ var NiumSidebar = {
     this.panel.hidden = true;
     this.openPanelName = null;
     this.spacesButton?.removeAttribute("open");
+    this.notesButton?.removeAttribute("open");
+  },
+
+  // ---- anotações: o Nium Notes (Nium Core) no painel ----
+  NOTES_URL: "chrome://browser/content/nium/core/notes/index.html",
+
+  showNotes() {
+    if (!this.notesFrame) {
+      // Fica carregado entre aberturas do painel, para não perder o que está sendo escrito.
+      const frame = this.el("iframe", { class: "nium-notes-frame", src: this.NOTES_URL + "?panel" });
+      frame.addEventListener("load", () => this.guardNotesLinks(frame));
+      this.panel.appendChild(frame);
+      this.notesFrame = frame;
+    }
+    this.notesFrame.hidden = false;
+  },
+
+  // Links dentro das notas abrem numa aba nova, nunca dentro do painel.
+  guardNotesLinks(frame) {
+    const doc = frame.contentDocument;
+    doc?.addEventListener(
+      "click",
+      e => {
+        const a = e.target.closest?.("a[href]");
+        if (!a || a.hasAttribute("download") || a.href.startsWith("blob:")) return;
+        e.preventDefault();
+        if (/^https?:/i.test(a.href)) openTrustedLinkIn(a.href, "tab");
+      },
+      true
+    );
+  },
+
+  openNotesTab() {
+    const tab = gBrowser.addTrustedTab(this.NOTES_URL);
+    gBrowser.selectedTab = tab;
+    this.closePanel();
   },
 
   // ---- espaços: conjuntos de abas guardados ----

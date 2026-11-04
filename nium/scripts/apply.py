@@ -314,9 +314,13 @@ PATCHES = [
   ('browser/locales/en-US/browser/browserSets.ftl', 'ai-chatbot-sidebar-shortcut =\n    .key = X', 'ai-chatbot-sidebar-shortcut =\n    .key = A'),
   # Barra lateral do Nium Electron: o script nium-sidebar.js entra em cada janela
   ('browser/base/jar.mn',
-   '        content/browser/browser-main.js                     (content/browser-main.js)\n',
+   ('        content/browser/browser-main.js                     (content/browser-main.js)\n'
+    '        content/browser/nium/nium-sidebar.js                (content/nium/nium-sidebar.js)\n',
+    '        content/browser/browser-main.js                     (content/browser-main.js)\n'),
    '        content/browser/browser-main.js                     (content/browser-main.js)\n'
-   '        content/browser/nium/nium-sidebar.js                (content/nium/nium-sidebar.js)\n'),
+   '        content/browser/nium/nium-sidebar.js                (content/nium/nium-sidebar.js)\n'
+   '        content/browser/nium/core/notes/                    (content/nium/core/notes/*)\n'
+   '        content/browser/nium/core/shared/                   (content/nium/core/shared/*)\n'),
   ('browser/base/content/browser.xhtml',
    '  <script src="chrome://browser/content/browser-main.js"></script>\n',
    '  <script src="chrome://browser/content/browser-main.js"></script>\n'

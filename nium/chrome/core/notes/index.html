@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src chrome:; script-src chrome:; style-src chrome: 'unsafe-inline'; img-src chrome: data: https: blob:; object-src 'none'; frame-src 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nium Notes</title>
+<meta name="color-scheme" content="light dark">
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="notes.css">
+<link rel="stylesheet" href="panel.css">
+<script src="panel.js"></script>
+</head>
+<body>
+<div class="app" id="app">
+  <aside class="nav" aria-label="Pastas">
+    <header class="brand">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9"/><path d="M10 22V10l12 12V10"/></svg>
+      <span>Nium Notes</span>
+    </header>
+    <button type="button" class="new-note" data-action="new" title="Nova nota (Ctrl+Alt+N)">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>Nova nota
+    </button>
+    <nav class="sections" id="sections"></nav>
+    <div class="nav-foot">
+      <button type="button" class="icon-btn" data-action="theme" id="theme-btn" title="Tema"></button>
+      <button type="button" class="icon-btn" data-action="export-all" title="Exportar todas as notas (Markdown)">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v8M4.5 6.5 8 10l3.5-3.5M3 13h10"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <section class="list" aria-label="Notas">
+    <div class="list-head">
+      <h1 id="list-title">Todas as notas</h1>
+      <label class="search">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3 3"/></svg>
+        <input id="search" type="search" placeholder="Buscar notas" autocomplete="off" spellcheck="false">
+      </label>
+    </div>
+    <div class="cards" id="cards" role="listbox" aria-label="Lista de notas"></div>
+  </section>
+
+  <main class="editor" id="editor" aria-label="Editor">
+    <div class="empty" id="empty">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><rect x="10" y="6" width="28" height="36" rx="6"/><path d="M17 17h14M17 24h14M17 31h8"/></svg>
+      <h2>Nenhuma nota aberta</h2>
+      <p>Crie uma nota ou escolha uma da lista.</p>
+      <button type="button" class="primary" data-action="new">Nova nota</button>
+    </div>
+    <div class="doc" id="doc" hidden>
+      <div class="toolbar" role="toolbar" aria-label="Formatação">
+        <button type="button" data-cmd="h1" title="Título (# espaço)">H1</button>
+        <button type="button" data-cmd="h2" title="Subtítulo (## espaço)">H2</button>
+        <span class="sep"></span>
+        <button type="button" data-cmd="bold" title="Negrito (Ctrl+B)"><b>B</b></button>
+        <button type="button" data-cmd="italic" title="Itálico (Ctrl+I)"><i>I</i></button>
+        <button type="button" data-cmd="underline" title="Sublinhado (Ctrl+U)"><u>U</u></button>
+        <button type="button" data-cmd="strikeThrough" title="Riscado"><s>S</s></button>
+        <span class="sep"></span>
+        <button type="button" data-cmd="ul" title="Lista (- espaço)"><svg viewBox="0 0 16 16"><path d="M6 4h7M6 8h7M6 12h7"/><circle cx="3" cy="4" r=".9"/><circle cx="3" cy="8" r=".9"/><circle cx="3" cy="12" r=".9"/></svg></button>
+        <button type="button" data-cmd="ol" title="Lista numerada (1. espaço)"><svg viewBox="0 0 16 16"><path d="M6 4h7M6 8h7M6 12h7M2.5 3h1v2.5M2.3 7.3c.5-.6 1.7-.4 1.4.4L2.4 9.3h1.5"/></svg></button>
+        <button type="button" data-cmd="check" title="Lista de tarefas ([] espaço)"><svg viewBox="0 0 16 16"><rect x="2" y="2.5" width="5" height="5" rx="1.2"/><path d="m3.3 5 1 1 1.6-1.9M9 5h5M9 11h5"/><rect x="2" y="8.5" width="5" height="5" rx="1.2"/></svg></button>
+        <button type="button" data-cmd="quote" title="Citação (> espaço)"><svg viewBox="0 0 16 16"><path d="M3 4v8M6 5h7M6 8h7M6 11h5"/></svg></button>
+        <button type="button" data-cmd="code" title="Código"><svg viewBox="0 0 16 16"><path d="m5.5 4.5-3 3.5 3 3.5M10.5 4.5l3 3.5-3 3.5"/></svg></button>
+        <button type="button" data-cmd="link" title="Link (Ctrl+K)"><svg viewBox="0 0 16 16"><path d="M7 9a3 3 0 0 0 4.2 0l2-2a3 3 0 0 0-4.2-4.2l-.8.8M9 7a3 3 0 0 0-4.2 0l-2 2a3 3 0 0 0 4.2 4.2l.8-.8"/></svg></button>
+        <span class="grow"></span>
+        <select id="folder-select" title="Pasta" aria-label="Pasta"></select>
+        <button type="button" class="icon-btn" data-action="pin" id="pin-btn" title="Fixar"></button>
+        <button type="button" class="icon-btn" data-action="export" title="Exportar esta nota (Markdown)"><svg viewBox="0 0 16 16"><path d="M8 2v8M4.5 6.5 8 10l3.5-3.5M3 13h10"/></svg></button>
+        <button type="button" class="icon-btn danger" data-action="trash" id="trash-btn" title="Mover para a lixeira"></button>
+      </div>
+      <div class="trash-bar" id="trash-bar" hidden>
+        <span>Esta nota está na lixeira.</span>
+        <button type="button" data-action="restore">Restaurar</button>
+        <button type="button" class="danger" data-action="destroy">Excluir para sempre</button>
+      </div>
+      <div class="page">
+        <input id="title" class="title" placeholder="Sem título" maxlength="200" autocomplete="off">
+        <a class="source" id="source" target="_blank" rel="noopener" hidden></a>
+        <div id="body" class="body" contenteditable="true" spellcheck="true" data-placeholder="Escreva aqui… use # para título, - para lista, [] para tarefa."></div>
+      </div>
+      <footer class="status"><span id="words"></span><span id="saved"></span></footer>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="../shared/store.js"></script>
+<script src="notes.js"></script>
+</body>
+</html>

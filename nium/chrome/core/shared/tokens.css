@@ -1,0 +1,41 @@
+/* Nium Core — cores e medidas comuns (as mesmas do navegador). */
+:root{
+  --font:"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,sans-serif;
+  --font-display:"Segoe UI Variable Display","Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;
+  --font-mono:"Cascadia Code","Cascadia Mono",ui-monospace,Consolas,monospace;
+  --r-sm:6px;--r-md:8px;--r-lg:10px;--r-xl:12px;
+  --ease:cubic-bezier(.2,.8,.2,1);
+  --frame:#e9e9eb;--surface:#ffffff;--surface-2:#f6f6f7;--surface-3:#ededef;
+  --ink:#1d1d1f;--ink-2:#3a3a3d;--muted:#6b6b70;--dim:#9a9aa0;
+  --line:rgba(0,0,0,.07);--line-2:rgba(0,0,0,.11);
+  --hover:rgba(0,0,0,.05);--press:rgba(0,0,0,.085);
+  --accent:#3f6f5c;--accent-ink:#ffffff;
+  --accent-pale:color-mix(in srgb,var(--accent) 12%,transparent);
+  --ring:0 0 0 3px color-mix(in srgb,var(--accent) 28%,transparent);
+  --shadow-sm:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.08);
+  --shadow-lg:0 20px 48px -12px rgba(16,24,40,.22),0 8px 16px -8px rgba(16,24,40,.10);
+  --danger:#b4412f;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme=light]){
+    --frame:#171719;--surface:#1c1c1e;--surface-2:#232326;--surface-3:#2b2b2e;
+    --ink:#ececee;--ink-2:#c8c8cc;--muted:#97979d;--dim:#68686d;
+    --line:rgba(255,255,255,.06);--line-2:rgba(255,255,255,.09);
+    --hover:rgba(255,255,255,.055);--press:rgba(255,255,255,.09);
+    --accent:#9cbfae;--accent-ink:#0b1020;
+    --shadow-sm:0 1px 2px rgba(0,0,0,.35),0 1px 3px rgba(0,0,0,.3);
+    --shadow-lg:0 24px 60px -12px rgba(0,0,0,.7),0 8px 20px -8px rgba(0,0,0,.5);
+    --danger:#d98476;color-scheme:dark;
+  }
+}
+:root[data-theme=dark]{
+  --frame:#171719;--surface:#1c1c1e;--surface-2:#232326;--surface-3:#2b2b2e;
+  --ink:#ececee;--ink-2:#c8c8cc;--muted:#97979d;--dim:#68686d;
+  --line:rgba(255,255,255,.06);--line-2:rgba(255,255,255,.09);
+  --hover:rgba(255,255,255,.055);--press:rgba(255,255,255,.09);
+  --accent:#9cbfae;--accent-ink:#0b1020;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.35),0 1px 3px rgba(0,0,0,.3);
+  --shadow-lg:0 24px 60px -12px rgba(0,0,0,.7),0 8px 20px -8px rgba(0,0,0,.5);
+  --danger:#d98476;color-scheme:dark;
+}

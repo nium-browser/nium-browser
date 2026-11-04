@@ -1,0 +1,19 @@
+/* Nium (Firefox): Nium Notes no painel estreito à direita da janela.
+   Mostra "Nova nota" e as pastas numa faixa em cima; lista e editor embaixo. */
+html[data-panel] .app { grid-template-columns: 1fr; grid-template-rows: auto auto 1fr; height: 100vh; min-height: 0; }
+html[data-panel] .nav { display: flex !important; flex-direction: row; align-items: center; gap: 8px; padding: 10px 10px 0; min-height: 0; }
+html[data-panel] .brand, html[data-panel] .nav-foot, html[data-panel] .sec-label { display: none !important; }
+html[data-panel] .new-note { font-size: inherit !important; width: auto; padding: 0 12px !important; height: 32px; margin: 0; flex: none; justify-content: center; }
+html[data-panel] .sections { display: flex; gap: 4px; overflow-x: auto; flex: 1; min-width: 0; scrollbar-width: none; }
+html[data-panel] .sec { flex: none; padding: 0 10px !important; height: 30px; }
+html[data-panel] .sec .count { display: none; }
+html[data-panel] .sec .name { display: inline !important; }
+html[data-panel] .list { max-height: 34vh; }
+html[data-panel] .editor { margin: 0 8px 8px; min-height: 0; }
+html[data-panel] .sections { flex-direction: row !important; align-items: center; }
+html[data-panel] .list { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+html[data-panel] .cards { flex: 1; min-height: 0; overflow-y: auto; }
+html[data-panel] .app { grid-template-rows: auto minmax(0, 32vh) minmax(0, 1fr) !important; }
+html[data-panel] .list { max-height: none; height: 100%; }
+html[data-panel] .cards > * { flex: none; }
+html[data-panel] .list-head h1 { display: none; }

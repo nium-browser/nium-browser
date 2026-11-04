@@ -463,4 +463,16 @@ panel {
   --menuitem-border-radius: 6px;
   --menuitem-margin: 0 4px;
 }
+/* Anotações (Nium Notes) no painel: mais largo, sem margens internas */
+#nium-panel[kind="notes"] { width: 440px; }
+.nium-notes-frame {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  &[hidden] { display: none; }
+}
+.nium-panel-body[hidden] { display: none; }
+.nium-sb-row[open] { background-color: var(--nium-hover); }
 /* --- Nium: fim --- */
