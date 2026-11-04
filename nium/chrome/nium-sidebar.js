@@ -101,6 +101,97 @@ var NiumSidebar = {
     this.buildPanel();
     this.watchLayout();
     this.watchLoading();
+    this.takeOverSearchKey();
+  },
+
+  // ---- buscar abas na própria lateral (como no Electron) ----
+  // Ctrl+K (ou a tecla escolhida em about:keyboard) filtra a lista de abas da lateral quando
+  // ela está aberta; com a lateral recolhida ou escondida, usa a busca de abas do Firefox.
+  takeOverSearchKey() {
+    const key = document.getElementById("key_searchTabs");
+    const set = document.getElementById("mainCommandSet");
+    if (!key || !set || document.getElementById("nium-cmd-searchtabs")) return;
+    const cmd = document.createXULElement("command");
+    cmd.id = "nium-cmd-searchtabs";
+    cmd.addEventListener("command", () => this.startSearch());
+    set.appendChild(cmd);
+    key.setAttribute("command", cmd.id);
+  },
+
+  sidebarOpen() {
+    const main = document.querySelector("sidebar-main");
+    const container = document.getElementById("sidebar-container");
+    return !!(main?.expanded && container && !container.hidden && Services.prefs.getBoolPref("sidebar.verticalTabs", false));
+  },
+
+  startSearch() {
+    if (!this.sidebarOpen() || !this.searchBox) {
+      document.getElementById("Browser:SearchTabs")?.doCommand();
+      return;
+    }
+    this.searchBox.toggleAttribute("searching", true);
+    this.searchInput.focus();
+    this.searchInput.select();
+  },
+
+  filterTabs(text) {
+    const q = text.trim().toLowerCase();
+    let first = null;
+    for (const tab of gBrowser.tabs) {
+      const url = tab.linkedBrowser?.currentURI?.spec || "";
+      const match = !q || `${tab.label} ${url}`.toLowerCase().includes(q);
+      tab.toggleAttribute("nium-filtered", !match);
+      if (match && q && !first && !tab.hidden) first = tab;
+    }
+    return first;
+  },
+
+  endSearch() {
+    this.searchInput.value = "";
+    this.filterTabs("");
+    this.searchBox.removeAttribute("searching");
+  },
+
+  buildSearch() {
+    const t = this.t;
+    const kbd = this.el("kbd", { text: this.shortcutText("key_searchTabs") });
+    const button = this.el(
+      "button",
+      { class: "nium-sb-search", title: t.searchTabs, onclick: () => this.startSearch() },
+      [this.icon("chrome://global/skin/icons/search-glass.svg"), this.el("span", { class: "nium-sb-text", text: t.searchTabs }), kbd]
+    );
+    // O atalho pode mudar em about:keyboard: atualiza ao passar o mouse.
+    button.addEventListener("mouseenter", () => (kbd.textContent = this.shortcutText("key_searchTabs")));
+    const input = this.el("input", { class: "nium-sb-search-input", type: "search", placeholder: t.searchTabs, "aria-label": t.searchTabs });
+    input.addEventListener("input", () => this.filterTabs(input.value));
+    input.addEventListener("keydown", e => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        this.endSearch();
+        gBrowser.selectedBrowser.focus();
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        const first = this.filterTabs(input.value);
+        this.endSearch();
+        if (first) gBrowser.selectedTab = first;
+        gBrowser.selectedBrowser.focus();
+      }
+    });
+    input.addEventListener("blur", () => {
+      if (!input.value) this.endSearch();
+    });
+    // Aba nova ou fechada durante a busca: refiltra.
+    for (const type of ["TabOpen", "TabAttrModified"]) {
+      gBrowser.tabContainer.addEventListener(type, () => {
+        if (input.value) this.filterTabs(input.value);
+      });
+    }
+    this.searchInput = input;
+    this.searchBox = this.el("div", { class: "nium-sb-search-box" }, [
+      button,
+      this.el("div", { class: "nium-sb-search-field" }, [this.icon("chrome://global/skin/icons/search-glass.svg"), input]),
+    ]);
+    return this.searchBox;
   },
 
   // Marca a caixa de endereço enquanto a aba atual carrega (a linha que gira é CSS).
@@ -191,18 +282,7 @@ var NiumSidebar = {
       [this.el("span", { class: "nium-space-icon" }, [this.icon("chrome://global/skin/icons/folder.svg")]), this.spaceName]
     );
     this.spacesButton = picker;
-    const kbd = this.el("kbd", { text: this.shortcutText("key_searchTabs") });
-    const search = this.el(
-      "button",
-      {
-        class: "nium-sb-search",
-        title: t.searchTabs,
-        onclick: () => document.getElementById("Browser:SearchTabs")?.doCommand(),
-      },
-      [this.icon("chrome://global/skin/icons/search-glass.svg"), this.el("span", { class: "nium-sb-text", text: t.searchTabs }), kbd]
-    );
-    // O atalho pode mudar em about:keyboard: atualiza ao passar o mouse.
-    search.addEventListener("mouseenter", () => (kbd.textContent = this.shortcutText("key_searchTabs")));
+    const search = this.buildSearch();
     const label = this.el("div", { class: "nium-section-label", text: t.yourTabs });
     return this.el("div", { id: "nium-sidebar-top", class: "nium-sb-block" }, [brand, picker, search, label]);
   },

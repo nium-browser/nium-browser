@@ -416,4 +416,46 @@ sidebar-main:not([expanded]) > .nium-sb-block {
 }
 .nium-card-tabs { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .nium-space-picker[open] { background-color: var(--nium-hover); }
+/* Buscar abas na lateral: o botão vira um campo e a lista de abas filtra enquanto digita */
+.nium-sb-search-box {
+  display: flex;
+  flex-direction: column;
+
+  &[searching] > .nium-sb-search { display: none; }
+  &:not([searching]) > .nium-sb-search-field { display: none; }
+}
+.nium-sb-search-field {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  height: 30px;
+  margin-block: 2px 10px;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--color-accent-primary, currentColor) 70%, transparent);
+  background: var(--nium-hover);
+}
+.nium-sb-search-input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  appearance: none;
+}
+.tabbrowser-tab[nium-filtered] {
+  display: none !important;
+}
+sidebar-main:not([expanded]) .nium-sb-search-field { display: none; }
+
+/* Menus como no Nium Electron: itens com cantos de 6px e um respiro nas laterais */
+menupopup,
+panel {
+  --menuitem-border-radius: 6px;
+  --menuitem-margin: 0 4px;
+}
 /* --- Nium: fim --- */
