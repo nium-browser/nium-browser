@@ -66,3 +66,6 @@ pref("sidebar.main.tools", "bookmarks,history");
 // como no Nium Electron (Ctrl+Shift+B mostra a barra quando quiser)
 pref("sidebar.verticalTabs.dragToPinPromo.dismissed", true);
 pref("browser.toolbars.bookmarks.visibility", "never");
+
+// Nova aba do Nium também na página inicial (sem o cache da página inicial do Firefox)
+pref("browser.startup.homepage.abouthome_cache.enabled", false);

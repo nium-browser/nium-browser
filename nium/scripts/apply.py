@@ -134,6 +134,30 @@ def chrome_css():
   say('visual do Nium na janela')
 
 
+NEWTAB_JAR = '  builtin-addons/newtab/data/content/nium/ (./data/content/nium/*)\n'
+
+
+def newtab():
+  """Nova aba do Nium Electron no lugar da do Firefox."""
+  nt = FIREFOX / 'browser' / 'extensions' / 'newtab'
+  dest = nt / 'data' / 'content' / 'nium'
+  dest.mkdir(parents=True, exist_ok=True)
+  for name in ('newtab.css', 'newtab.js'):
+    src = KIT / 'newtab' / name
+    if not (dest / name).exists() or (dest / name).read_bytes() != src.read_bytes():
+      shutil.copyfile(src, dest / name)
+  html = (KIT / 'newtab' / 'activity-stream.html').read_text(encoding='utf-8')
+  write_if_changed(nt / 'prerendered' / 'activity-stream.html', html)
+  jar = nt / 'addon-jar.mn'
+  text = jar.read_text(encoding='utf-8')
+  if 'data/content/nium/' not in text:
+    anchor = '  builtin-addons/newtab/prerendered/activity-stream.html'
+    if anchor not in text:
+      sys.exit('[nium] ERRO: não achei a nova aba em addon-jar.mn; me mande este erro.')
+    write_if_changed(jar, text.replace(anchor, NEWTAB_JAR + anchor, 1))
+  say('nova aba do Nium')
+
+
 def prefs():
   p = FIREFOX / 'browser' / 'app' / 'profile' / 'firefox.js'
   text = p.read_text(encoding='utf-8')
@@ -226,6 +250,20 @@ PATCHES = [
   ('browser/components/customizableui/CustomizableUI.sys.mjs',
    '      Services.policies.isAllowed("removeHomeButtonByDefault")\n        ? null\n        : "home-button",\n      "spring",\n      "vertical-spacer",',
    '      null, // Nium: sem botão Início e sem espaço antes do endereço\n      "vertical-spacer",'),
+  # Atalhos de fábrica do Nium Electron (dá para mudar tudo em about:keyboard)
+  # Ctrl+Shift+N = janela anônima (o "reabrir janela" fica no Ctrl+Shift+T, que reabre aba ou janela)
+  ('browser/base/content/browser-sets.inc.xhtml', '<key id="key_undoCloseWindow" command="History:UndoCloseWindow" data-l10n-id="window-new-shortcut" modifiers="accel,shift"/>', '<key id="key_undoCloseWindow" command="History:UndoCloseWindow"/>'),
+  ('browser/locales/en-US/browser/browserSets.ftl', 'private-browsing-shortcut =\n    .key = P', 'private-browsing-shortcut =\n    .key = N'),
+  # Ctrl+K = buscar abas (no Firefox era pesquisar na web; Ctrl+E continua pesquisando)
+  ('browser/base/content/browser-sets.inc.xhtml', '<key id="key_search" data-l10n-id="search-focus-shortcut" command="Tools:Search" modifiers="accel"/>', '<key id="key_search" command="Tools:Search"/>'),
+  ('browser/base/content/browser-sets.inc.xhtml', '<key id="key_searchTabs" data-l10n-id="search-tabs-shortcut" command="Browser:SearchTabs" modifiers="accel,shift"/>', '<key id="key_searchTabs" data-l10n-id="search-tabs-shortcut" command="Browser:SearchTabs" modifiers="accel"/>'),
+  ('browser/locales/en-US/browser/browserSets.ftl', 'search-tabs-shortcut =\n    .key = A', 'search-tabs-shortcut =\n    .key = K'),
+  # Ctrl+B = abrir/fechar a barra lateral (no Firefox era favoritos na lateral)
+  ('browser/base/content/browser-sets.inc.xhtml', '    <key id="viewBookmarksSidebarKb"\n         data-l10n-id="bookmark-show-sidebar-shortcut"\n         modifiers="accel"/>', '    <key id="viewBookmarksSidebarKb"/>'),
+  ('browser/base/content/browser-sets.inc.xhtml', '         modifiers="control,alt"\n#endif\n        />', '         modifiers="accel"\n#endif\n        />'),
+  ('browser/locales/en-US/browser/browserSets.ftl', 'toggle-sidebar-shortcut =\n    .key = Z', 'toggle-sidebar-shortcut =\n    .key = B'),
+  # Ctrl+Alt+A = painel de IA
+  ('browser/locales/en-US/browser/browserSets.ftl', 'ai-chatbot-sidebar-shortcut =\n    .key = X', 'ai-chatbot-sidebar-shortcut =\n    .key = A'),
   # about:logins: tira as instruções de sincronizar com conta Mozilla
   ('browser/components/aboutlogins/content/aboutLogins.html', '        <ul>\n          <li data-l10n-id="login-intro-instructions-fxa2">', '        <ul hidden>\n          <li data-l10n-id="login-intro-instructions-fxa2">'),
 ]
@@ -249,11 +287,14 @@ def patches():
 def revert():
   shutil.rmtree(FIREFOX / 'browser' / 'branding' / 'nium', ignore_errors=True)
   shutil.rmtree(FIREFOX / 'browser' / 'themes' / 'addons' / 'nium', ignore_errors=True)
+  shutil.rmtree(FIREFOX / 'browser' / 'extensions' / 'newtab' / 'data' / 'content' / 'nium', ignore_errors=True)
   subprocess.call(['git', 'checkout', '--', 'browser/app/profile/firefox.js',
                    'browser/themes/addons/jar.mn', 'browser/themes/BuiltInThemeConfig.sys.mjs',
                    'browser/themes/ThemesList.sys.mjs',
                    'toolkit/themes/shared/design-system/dist/tokens-shared.css',
-                   'browser/themes/shared/browser-shared.css']
+                   'browser/themes/shared/browser-shared.css',
+                   'browser/extensions/newtab/prerendered/activity-stream.html',
+                   'browser/extensions/newtab/addon-jar.mn']
                   + sorted({r for r, _, _ in PATCHES}) + _mascots() + list(LOGO_ICONS) + list(PRIVATE_ICONS), cwd=FIREFOX)
   m = FIREFOX / 'mozconfig'
   if m.exists() and 'Nium' in m.read_text(encoding='utf-8'):
@@ -276,6 +317,7 @@ def main():
   theme()
   tokens()
   chrome_css()
+  newtab()
   art()
   patches()
   prefs()

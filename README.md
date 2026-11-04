@@ -34,6 +34,7 @@ No Artifact Mode o C++ vem pronto da Mozilla: mudanças de interface (JS/CSS/HTM
 | `nium/themes/nium` | Tema Nium embutido (claro/escuro, verde do Nium), ativado por padrão |
 | `nium/css/nium-tokens.css` | Cores do Nium nas páginas internas (no lugar do violeta/azul do Firefox) |
 | `nium/css/nium-chrome.css` | Visual do Nium Electron na janela (cantos, fonte, logo e abas na lateral) |
+| `nium/newtab` | Nova aba do Nium (a mesma do Nium Electron) |
 | `nium/art` | Arte do Nium que substitui as raposas e logos do Firefox nas telas internas |
 | `nium/prefs/nium-prefs.js` | Padrões do Nium: abas na lateral, sem telemetria, nova aba sem patrocínio |
 | `nium/mozconfig` | Configuração de compilação (Artifact Mode + marca Nium) |
