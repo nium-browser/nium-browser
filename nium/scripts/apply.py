@@ -143,13 +143,92 @@ def mozconfig():
   say('mozconfig do Nium (Artifact Mode)')
 
 
+# --- Tirar o Firefox das telas internas -------------------------------------
+# Mascotes (raposa "Kit") trocados pela arte do Nium. Só .svg; o resto fica.
+ART = KIT / 'art'
+MASCOT_SKIP = ('/test', '/docs/', 'branding/', 'devtools/', 'mobile/', 'third_party', 'testing/',
+               'kit-mention')
+DECORATIVE = ('fox-tail.svg',)        # enfeites: somem
+LOGO_ICONS = ('browser/themes/shared/sidebar/firefox.svg',
+              'browser/themes/shared/icons/window-firefox.svg',
+              'browser/themes/shared/preferences/mozilla-logo.svg',
+              'browser/themes/shared/preferences/mozilla-16.svg')
+
+
+def _mascots():
+  import re
+  out = subprocess.run(['git', 'ls-files', '*.svg'], cwd=FIREFOX, capture_output=True,
+                       text=True, encoding='utf-8').stdout.split()
+  found = []
+  for f in out:
+    if any(k in f for k in MASCOT_SKIP):
+      continue
+    name = os.path.basename(f).replace('firefox', '')
+    if re.search(r'(^|[-_])(fox|kit)([-_.]|$)', name):
+      found.append(f)
+  return found
+
+
+def art():
+  ill = (ART / 'illustration.svg').read_bytes()
+  blank = (ART / 'blank.svg').read_bytes()
+  logo = (ART / 'logo-icon.svg').read_bytes()
+  n = 0
+  files = _mascots()
+  for f in files + list(LOGO_ICONS):
+    p = FIREFOX / f
+    if not p.exists():
+      continue
+    data = logo if f in LOGO_ICONS else blank if p.name in DECORATIVE else ill
+    if p.read_bytes() != data:
+      p.write_bytes(data)
+      n += 1
+  say(f'raposas e logos do Firefox trocados pelo Nium ({len(files)} ilustrações, {n} arquivos atualizados)')
+  return files
+
+
+# Trocas de texto: (arquivo, texto original, texto do Nium). Rodar de novo não duplica.
+PATCHES = [
+  # Nomes de recursos "Firefox ..." viram "Nium ..."
+  ('toolkit/locales/en-US/toolkit/branding/brandings.ftl', '-firefox-suggest-brand-name = Firefox Suggest', '-firefox-suggest-brand-name = Nium Suggest'),
+  ('toolkit/locales/en-US/toolkit/branding/brandings.ftl', '-firefox-home-brand-name = Firefox Home', '-firefox-home-brand-name = Nium Home'),
+  ('toolkit/locales/en-US/toolkit/branding/brandings.ftl', '-firefoxview-brand-name = Firefox View', '-firefoxview-brand-name = Nium View'),
+  ('toolkit/locales/en-US/toolkit/branding/brandings.ftl', '-firefoxlabs-brand-name = Firefox Labs', '-firefoxlabs-brand-name = Nium Labs'),
+  ('toolkit/locales/en-US/toolkit/branding/brandings.ftl', '-screenshots-brand-name = Firefox Screenshots', '-screenshots-brand-name = Nium Screenshots'),
+  ('toolkit/locales/en-US/toolkit/branding/brandings.ftl', '-translations-brand-name = Firefox Translations', '-translations-brand-name = Nium Translations'),
+  # Configurações: some o bloco "Conta (Mozilla) indisponível" e o "indique o Firefox"
+  ('browser/components/preferences/config/account-sync.mjs', 'hidden: accountsEnabled,', 'hidden: true, // Nium'),
+  ('browser/components/preferences/config/account-sync.mjs', 'hidden: !Referrals.isEnabled,', 'hidden: true, // Nium'),
+  ('browser/locales/en-US/browser/preferences/preferences.ftl', 'account-sync-section =\n    .heading = Account and sync', 'account-sync-section =\n    .heading = Essentials'),
+  ('browser/locales/en-US/browser/preferences/preferences.ftl', 'pane-account-sync-title2 = Account and sync\n    .title = Account and sync', 'pane-account-sync-title2 = Essentials\n    .title = Essentials'),
+  # about:logins: tira as instruções de sincronizar com conta Mozilla
+  ('browser/components/aboutlogins/content/aboutLogins.html', '        <ul>\n          <li data-l10n-id="login-intro-instructions-fxa2">', '        <ul hidden>\n          <li data-l10n-id="login-intro-instructions-fxa2">'),
+]
+
+
+def patches():
+  ok = miss = 0
+  for rel, old, new in PATCHES:
+    p = FIREFOX / rel
+    if not p.exists():
+      say(f'AVISO: {rel} não existe (pulei)'); miss += 1; continue
+    text = p.read_text(encoding='utf-8')
+    if new in text:
+      ok += 1; continue
+    if old not in text:
+      say(f'AVISO: não achei o texto em {rel} (o Firefox mudou?) — pulei: {old[:50]!r}'); miss += 1; continue
+    write_if_changed(p, text.replace(old, new, 1)); ok += 1
+  say(f'textos do Firefox ajustados ({ok} ok, {miss} pulados)')
+
+
 def revert():
   shutil.rmtree(FIREFOX / 'browser' / 'branding' / 'nium', ignore_errors=True)
   shutil.rmtree(FIREFOX / 'browser' / 'themes' / 'addons' / 'nium', ignore_errors=True)
   subprocess.call(['git', 'checkout', '--', 'browser/app/profile/firefox.js',
                    'browser/themes/addons/jar.mn', 'browser/themes/BuiltInThemeConfig.sys.mjs',
                    'browser/themes/ThemesList.sys.mjs',
-                   'toolkit/themes/shared/design-system/dist/tokens-shared.css'], cwd=FIREFOX)
+                   'toolkit/themes/shared/design-system/dist/tokens-shared.css']
+                  + sorted({r for r, _, _ in PATCHES}) + _mascots() + list(LOGO_ICONS), cwd=FIREFOX)
   m = FIREFOX / 'mozconfig'
   if m.exists() and 'Nium' in m.read_text(encoding='utf-8'):
     m.unlink()
@@ -170,6 +249,8 @@ def main():
   branding()
   theme()
   tokens()
+  art()
+  patches()
   prefs()
   mozconfig()
   say('pronto. Agora: ./mach build && ./mach run')

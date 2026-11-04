@@ -34,3 +34,27 @@ pref("browser.newtabpage.activity-stream.telemetry", false);
 
 // Conta Mozilla (sincronização da Mozilla) desligada: o Nium terá a própria sincronização
 pref("identity.fxaccounts.enabled", false);
+
+// Abre as abas da última vez (como Arc/Zen) — e some a barra "Open previous tabs?"
+pref("browser.startup.page", 3);
+
+// Sem telas e propagandas do Firefox
+pref("browser.aboutwelcome.enabled", false);
+pref("startup.homepage_welcome_url", "");
+pref("startup.homepage_welcome_url.additional", "");
+pref("startup.homepage_override_url", "");
+pref("browser.startup.homepage_override.mstone", "ignore");
+pref("browser.messaging-system.whatsNewPanel.enabled", false);
+pref("browser.newtabpage.activity-stream.asrouter.userprefs.cfr.addons", false);
+pref("browser.newtabpage.activity-stream.asrouter.userprefs.cfr.features", false);
+pref("browser.preferences.moreFromMozilla", false);
+pref("browser.vpn_promo.enabled", false);
+pref("browser.privatebrowsing.vpnpromourl", "");
+pref("browser.promo.focus.enabled", false);
+pref("browser.promo.pin.enabled", false);
+pref("browser.uitour.enabled", false);
+pref("extensions.getAddons.showPane", false);
+pref("extensions.htmlaboutaddons.recommendations.enabled", false);
+pref("identity.fxaccounts.toolbar.enabled", false);
+pref("browser.tabs.firefox-view", false);
+pref("browser.referrals.enabled", false);
