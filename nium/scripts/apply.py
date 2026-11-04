@@ -60,9 +60,20 @@ THEME_CONFIG = (
     '    {\n'
     '      version: "%s",\n'
     '      path: "resource://builtin-themes/nium/",\n'
-    '      inApp: true,\n'
     '    },\n'
     '  ], // Nium\n')
+
+
+THEME_LIST_ENTRY = '''  { // Nium
+    id: "{ID}",
+    isBuiltIn: true,
+    showInCompactLayout: true,
+    themePickerColors: {
+      light: { type: "gradient", value: "linear-gradient(96deg, #E9E9EB 30%, #B9D3C6 100%)" },
+      dark: { type: "gradient", value: "linear-gradient(96deg, #171719 30%, #2F4A3E 100%)" },
+    },
+  }, // Nium
+'''
 
 
 def theme():
@@ -85,6 +96,17 @@ def theme():
   if text.count(anchor) != 1:
     sys.exit('[nium] ERRO: não achei o fim da lista em BuiltInThemeConfig.sys.mjs; me mande este erro.')
   write_if_changed(cfg, text.replace(anchor, '\n' + THEME_CONFIG % (THEME_ID, version) + ']);'))
+  # Lista de temas da tela de temas (about:addons e boas-vindas): o Nium aparece primeiro.
+  lst = FIREFOX / 'browser' / 'themes' / 'ThemesList.sys.mjs'
+  text = lst.read_text(encoding='utf-8')
+  if THEME_ID in text:
+    start = text.index('  { // Nium')
+    end = text.index('  }, // Nium\n', start) + len('  }, // Nium\n')
+    text = text[:start] + text[end:]
+  anchor = 'export const FIREFOX_THEMES_LIST = [\n'
+  if text.count(anchor) != 1:
+    sys.exit('[nium] ERRO: não achei FIREFOX_THEMES_LIST em ThemesList.sys.mjs; me mande este erro.')
+  write_if_changed(lst, text.replace(anchor, anchor + THEME_LIST_ENTRY.replace('{ID}', THEME_ID)))
   say('tema Nium embutido')
 
 
@@ -113,7 +135,8 @@ def revert():
   shutil.rmtree(FIREFOX / 'browser' / 'branding' / 'nium', ignore_errors=True)
   shutil.rmtree(FIREFOX / 'browser' / 'themes' / 'addons' / 'nium', ignore_errors=True)
   subprocess.call(['git', 'checkout', '--', 'browser/app/profile/firefox.js',
-                   'browser/themes/addons/jar.mn', 'browser/themes/BuiltInThemeConfig.sys.mjs'], cwd=FIREFOX)
+                   'browser/themes/addons/jar.mn', 'browser/themes/BuiltInThemeConfig.sys.mjs',
+                   'browser/themes/ThemesList.sys.mjs'], cwd=FIREFOX)
   m = FIREFOX / 'mozconfig'
   if m.exists() and 'Nium' in m.read_text(encoding='utf-8'):
     m.unlink()
