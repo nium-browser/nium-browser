@@ -28,6 +28,20 @@ var NiumSidebar = {
       mySpaces: "My spaces",
       notes: "Notes",
       expand: "Expand",
+      splitView: "Split view",
+      youTitle: "Your space",
+      youIntro: "Quick Nium options. Everything else is in Settings.",
+      citeLabel: "Cite the source when copying",
+      citeHelp: "Copying text from a site adds its title, address and date below.",
+      citeStyle: "Citation style",
+      citeSimple: "Simple",
+      citeAbnt: "ABNT",
+      citeMarkdown: "Markdown",
+      restoreLabel: "Reopen my tabs when Nium starts",
+      bookmarksLabel: "Show the bookmarks bar",
+      openSettings: "All settings",
+      openShortcuts: "Keyboard shortcuts",
+      openAddons: "Extensions and themes",
       shrink: "Back to the side",
       close: "Close",
       spacesIntro: "A set of tabs for each project. Saved only on this device.",
@@ -60,6 +74,20 @@ var NiumSidebar = {
       mySpaces: "Meus espaços",
       notes: "Anotações",
       expand: "Expandir",
+      splitView: "Tela dividida",
+      youTitle: "Seu espaço",
+      youIntro: "Opções rápidas do Nium. O resto fica nas Configurações.",
+      citeLabel: "Citar a fonte ao copiar",
+      citeHelp: "Ao copiar um texto de um site, o título, o endereço e a data vão junto embaixo.",
+      citeStyle: "Estilo da citação",
+      citeSimple: "Simples",
+      citeAbnt: "ABNT",
+      citeMarkdown: "Markdown",
+      restoreLabel: "Reabrir minhas abas quando o Nium abrir",
+      bookmarksLabel: "Mostrar a barra de favoritos",
+      openSettings: "Todas as configurações",
+      openShortcuts: "Atalhos de teclado",
+      openAddons: "Extensões e temas",
       shrink: "Voltar para o lado",
       close: "Fechar",
       spacesIntro: "Um conjunto de abas para cada projeto. Salvo só neste dispositivo.",
@@ -108,6 +136,8 @@ var NiumSidebar = {
     this.watchLayout();
     this.watchLoading();
     this.takeOverSearchKey();
+    this.registerActors();
+    this.createSplitButton();
     this.updateShieldDot();
     // O uBlock pode terminar de ligar depois da janela abrir.
     setTimeout(() => this.updateShieldDot(), 3000);
@@ -313,15 +343,15 @@ var NiumSidebar = {
         (this.shieldDot = this.el("span", { class: "nium-shield-dot" })),
       ]
     );
-    const you = this.el(
+    const you = (this.youButton = this.el(
       "button",
-      { class: "nium-sb-row", title: t.settings, onclick: () => openPreferences() },
+      { class: "nium-sb-row", title: t.youTitle, onclick: () => this.togglePanel("you") },
       [
         this.el("span", { class: "nium-avatar", text: "N" }),
         this.el("span", { class: "nium-sb-text", text: t.yourSpace }),
         this.icon("chrome://global/skin/icons/settings.svg"),
       ]
-    );
+    ));
     const notes = this.el(
       "button",
       { class: "nium-sb-row", title: t.notes, onclick: () => this.togglePanel("notes") },
@@ -400,6 +430,7 @@ var NiumSidebar = {
     this.panel.setAttribute("kind", name);
     this.spacesButton?.toggleAttribute("open", name === "spaces");
     this.notesButton?.toggleAttribute("open", name === "notes");
+    this.youButton?.toggleAttribute("open", name === "you");
     this.openFullButton.hidden = name !== "notes";
     if (this.notesFrame && name !== "notes") this.notesFrame.hidden = true;
     if (name !== "notes") this.panel.removeAttribute("wide");
@@ -408,6 +439,10 @@ var NiumSidebar = {
       this.panelIcon.src = "chrome://global/skin/icons/folder.svg";
       this.panelTitle.textContent = this.t.mySpaces;
       this.renderSpaces();
+    } else if (name === "you") {
+      this.panelIcon.src = "chrome://global/skin/icons/settings.svg";
+      this.panelTitle.textContent = this.t.youTitle;
+      this.renderYou();
     } else if (name === "notes") {
       this.panelIcon.src = "chrome://global/skin/icons/edit-outline.svg";
       this.panelTitle.textContent = this.t.notes;
@@ -424,6 +459,7 @@ var NiumSidebar = {
     this.openPanelName = null;
     this.spacesButton?.removeAttribute("open");
     this.notesButton?.removeAttribute("open");
+    this.youButton?.removeAttribute("open");
   },
 
   // ---- anotações: o Nium Notes (Nium Core) no painel ----
@@ -474,6 +510,106 @@ var NiumSidebar = {
         if (/^https?:/i.test(a.href)) openTrustedLinkIn(a.href, "tab");
       },
       true
+    );
+  },
+
+  // ---- "citar ao copiar": o ator roda no processo das páginas (NiumCiteChild.sys.mjs) ----
+  registerActors() {
+    try {
+      ChromeUtils.registerWindowActor("NiumCite", {
+        child: {
+          esModuleURI: "chrome://browser/content/nium/NiumCiteChild.sys.mjs",
+          events: { copy: { capture: true } },
+        },
+        matches: ["http://*/*", "https://*/*"],
+        allFrames: true,
+      });
+    } catch (e) {
+      // Já registrado por outra janela.
+    }
+  },
+
+  // ---- botão de tela dividida na barra de cima (como no Electron) ----
+  createSplitButton() {
+    if (CustomizableUI.getWidget("nium-split-button")?.provider === CustomizableUI.PROVIDER_API) return;
+    const t = this.t;
+    try {
+      CustomizableUI.createWidget({
+        id: "nium-split-button",
+        type: "button",
+        label: t.splitView,
+        tooltiptext: t.splitView,
+        defaultArea: CustomizableUI.AREA_NAVBAR,
+        onCommand(event) {
+          const win = event.target.ownerGlobal;
+          const tab = win.gBrowser.selectedTab;
+          if (tab.closest?.("tab-split-view-wrapper")) {
+            win.BrowserCommands.separateTabSplitView();
+          } else {
+            win.BrowserCommands.addTabSplitView();
+          }
+        },
+      });
+    } catch (e) {
+      console.error("Nium: botão de tela dividida", e);
+    }
+  },
+
+  // ---- painel "Seu espaço": opções rápidas do Nium ----
+  renderYou() {
+    const t = this.t;
+    const body = this.panelBody;
+    body.textContent = "";
+    body.append(this.el("p", { class: "nium-panel-description", text: t.youIntro }));
+
+    const toggle = (label, help, checked, onchange) => {
+      const input = this.el("input", { type: "checkbox", class: "nium-switch" });
+      input.checked = checked;
+      input.addEventListener("change", () => onchange(input.checked));
+      const row = this.el("label", { class: "nium-option" }, [
+        this.el("span", { class: "nium-option-text" }, [
+          this.el("span", { class: "nium-option-label", text: label }),
+          ...(help ? [this.el("span", { class: "nium-option-help", text: help })] : []),
+        ]),
+        input,
+      ]);
+      body.append(row);
+      return input;
+    };
+
+    const prefs = Services.prefs;
+    toggle(t.citeLabel, t.citeHelp, prefs.getBoolPref("nium.copy.cite", false), v => {
+      prefs.setBoolPref("nium.copy.cite", v);
+      styleRow.hidden = !v;
+    });
+    const select = this.el("select", { class: "nium-select", "aria-label": t.citeStyle });
+    for (const [value, label] of [["simple", t.citeSimple], ["abnt", t.citeAbnt], ["markdown", t.citeMarkdown]]) {
+      const option = this.el("option", { value, text: label });
+      select.append(option);
+    }
+    select.value = prefs.getStringPref("nium.copy.citeStyle", "simple");
+    select.addEventListener("change", () => prefs.setStringPref("nium.copy.citeStyle", select.value));
+    const styleRow = this.el("div", { class: "nium-option nium-option-sub" }, [
+      this.el("span", { class: "nium-option-label", text: t.citeStyle }),
+      select,
+    ]);
+    styleRow.hidden = !prefs.getBoolPref("nium.copy.cite", false);
+    body.append(styleRow);
+
+    toggle(t.restoreLabel, "", prefs.getIntPref("browser.startup.page", 1) === 3, v =>
+      prefs.setIntPref("browser.startup.page", v ? 3 : 1)
+    );
+    toggle(t.bookmarksLabel, "", prefs.getCharPref("browser.toolbars.bookmarks.visibility", "never") === "always", v =>
+      prefs.setCharPref("browser.toolbars.bookmarks.visibility", v ? "always" : "never")
+    );
+
+    const link = (label, icon, action) =>
+      this.el("button", { class: "nium-link-row", onclick: action }, [this.icon(icon), this.el("span", { text: label })]);
+    body.append(
+      this.el("div", { class: "nium-subheading", text: "" }),
+      link(t.openSettings, "chrome://global/skin/icons/settings.svg", () => openPreferences()),
+      link(t.openShortcuts, "chrome://global/skin/icons/search-glass.svg", () => openTrustedLinkIn("about:keyboard", "tab")),
+      link(t.openAddons, "chrome://mozapps/skin/extensions/extension.svg", () => BrowserAddonUI.openAddonsMgr("addons://list/extension"))
     );
   },
 

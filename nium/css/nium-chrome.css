@@ -486,4 +486,70 @@ panel {
 }
 .nium-panel-body[hidden] { display: none; }
 .nium-sb-row[open] { background-color: var(--nium-hover); }
+/* Botão de tela dividida na barra de cima */
+#nium-split-button {
+  list-style-image: url("chrome://browser/skin/split-view-left-16.svg");
+}
+
+/* Painel "Seu espaço": opções com chave liga/desliga */
+.nium-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--nium-line);
+
+  &[hidden] { display: none; }
+}
+.nium-option-sub { padding-top: 0; padding-inline-start: 14px; }
+.nium-option-text { display: flex; flex-direction: column; gap: 3px; }
+.nium-option-label { font-weight: 500; }
+.nium-option-help { font-size: 12px; line-height: 1.45; color: var(--nium-muted); }
+.nium-switch {
+  appearance: none;
+  flex: none;
+  position: relative;
+  width: 34px;
+  height: 20px;
+  margin: 0;
+  border-radius: 999px;
+  background: var(--nium-line-2);
+  border: 1px solid var(--nium-line-2);
+  transition: background-color .15s;
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    inset-inline-start: 2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--nium-ink);
+    transition: transform .15s;
+  }
+  &:checked { background: var(--color-accent-primary, #3f6f5c); border-color: transparent; }
+  &:checked::after { transform: translateX(14px); background: var(--nium-surface); }
+  &:focus-visible { outline: var(--focus-outline); outline-offset: 2px; }
+}
+.nium-select {
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 6px;
+  border: 1px solid var(--nium-line-2);
+  background: var(--nium-surface-2);
+  color: var(--nium-ink);
+  font: inherit;
+}
+.nium-link-row {
+  width: 100%;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+  height: 36px;
+  padding: 0 8px;
+  border-radius: 8px;
+  background: transparent;
+  &:hover { background: var(--nium-hover); }
+}
 /* --- Nium: fim --- */
