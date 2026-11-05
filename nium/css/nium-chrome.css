@@ -1027,16 +1027,16 @@ panel {
 @font-face { font-family: "Nium Serif"; src: url("chrome://browser/content/nium/assets/fonts/noto-serif-jp-light.woff") format("woff"); font-weight: 300; }
 @font-face { font-family: "Nium Italic"; src: url("chrome://browser/content/nium/assets/fonts/crimson-pro-italic.woff") format("woff"); font-style: italic; }
 
-/* ---- Barra de cima: 44px, limpa como o exemplo ---- */
-#nav-bar {
-  min-height: 44px;
-  padding-block: 4px !important;
-  --toolbarbutton-outer-padding: 3px;
-  --toolbarbutton-inner-padding: 9px;
+/* ---- Barra de cima: altura de antes; só a barra de endereço mais larga ---- */
+#urlbar-container {
+  flex: 1000 1 auto !important;
+  max-width: none !important;
 }
-#urlbar-container { --urlbar-container-height: 36px !important; }
-#urlbar { --urlbar-height: 34px !important; --urlbar-min-height: 34px !important; }
-#urlbar:not([breakout-extend]) { margin-block: 1px !important; }
+#nav-bar toolbarspring {
+  flex: 1 1 0 !important;
+  min-width: 8px !important;
+  max-width: 48px !important;
+}
 #urlbar:not([focused]) > .urlbar-background {
   border-color: transparent !important;
   box-shadow: none !important;
@@ -1076,6 +1076,25 @@ panel {
 /* Ícones do Nium nos botões do Nium */
 #nium-split-button { list-style-image: url("chrome://browser/content/nium/icons/split.svg") !important; }
 #nium-ai-button { list-style-image: url("chrome://browser/content/nium/icons/sparkle.svg") !important; }
+
+/* Realce redondo nos ícones (como no exemplo), na barra de endereço e nos botões da barra */
+:root { --toolbarbutton-border-radius: 999px !important; }
+#urlbar .urlbar-page-action,
+#urlbar #star-button-box,
+#urlbar .identity-box-button,
+#urlbar #reader-mode-button,
+#urlbar #translations-button {
+  border-radius: 999px !important;
+}
+/* Páginas do Nium (configurações, notas…): só o ícone, num círculo, sem o nome "Nium" */
+#identity-box.chromeUI #identity-icon-label,
+#identity-box.chromeUI #identity-icon-box > label { display: none !important; }
+#identity-box.chromeUI #identity-icon-box {
+  border-radius: 999px !important;
+  padding-inline: 6px !important;
+  min-width: 26px;
+  justify-content: center;
+}
 
 /* Todos os botões: realce suave ao passar o mouse e ao clicar */
 .toolbarbutton-1 > .toolbarbutton-icon,
@@ -1208,21 +1227,25 @@ tooltip {
     background-color: var(--tab-selected-bgcolor, light-dark(#f7f9f4, #1a282d)) !important;
   }
   .tabbrowser-tab[dragtarget] { z-index: 2; scale: 1.02; }
-  /* Fechar aba: um "x" do Nium, menor, que aparece com o mouse em cima */
+  /* Fechar aba: um "x" pequeno e fino, num círculo só no hover */
   .tab-close-button {
     list-style-image: url("chrome://browser/content/nium/icons/close.svg") !important;
-    width: 22px !important;
-    height: 22px !important;
-    padding: 3px !important;
-    border-radius: 6px !important;
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px !important;
+    padding: 4px !important;
+    margin-inline-end: 2px !important;
+    border: 0 !important;
+    outline: none !important;
+    box-shadow: none !important;
+    border-radius: 999px !important;
+    background: none !important;
     opacity: 0;
     transition: opacity .15s var(--nium-ease), background-color .15s var(--nium-ease);
+    > .toolbarbutton-icon { width: 10px !important; height: 10px !important; }
   }
-  .tabbrowser-tab:hover .tab-close-button { opacity: .75; }
-  &[expanded] .tabbrowser-tab[selected] .tab-close-button { opacity: .75; }
-  /* Lateral recolhida: sem "x" por cima do ícone do site (feche com Ctrl+W ou o botão do meio) */
-  &:not([expanded]) .tab-close-button { display: none !important; }
-  .tab-close-button:hover { opacity: 1 !important; background-color: var(--nium-hover, rgba(127, 127, 127, .14)) !important; }
+  .tabbrowser-tab:hover .tab-close-button { opacity: .6; }
+  .tab-close-button:hover { opacity: 1 !important; background-color: var(--nium-hover, rgba(127, 127, 127, .16)) !important; }
 }
 @keyframes nium-tab-in {
   from { opacity: 0; transform: translateX(-8px); }
@@ -1251,3 +1274,10 @@ tooltip {
 @media (prefers-reduced-motion: reduce) {
   #nium-panel, .nium-panel-body > *, #tabbrowser-tabs .tab-stack { animation: none !important; }
 }
+
+/* Lateral recolhida: sem "x" por cima do ícone do site (feche com Ctrl+W ou o botão do meio) */
+sidebar-main:not([expanded]) .tab-close-button,
+#tabbrowser-tabs[orient="vertical"]:not([expanded]) .tab-close-button {
+  display: none !important;
+}
+:root:not([sidebar-expand-on-hover]) sidebar-main[expanded] .tabbrowser-tab[selected] .tab-close-button { opacity: .6; }
