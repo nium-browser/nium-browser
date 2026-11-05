@@ -349,8 +349,13 @@ var NiumSidebar = {
   buildTop() {
     const t = this.t;
     const mark = this.el("span", { class: "nium-mark" });
-    mark.innerHTML =
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M4.5 11.5v-7l7 7v-7"/></svg>';
+    const SVG = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(SVG, "svg");
+    svg.setAttribute("viewBox", "0 0 16 16");
+    const path = document.createElementNS(SVG, "path");
+    path.setAttribute("d", "M4.5 11.5v-7l7 7v-7");
+    svg.append(path);
+    mark.append(svg);
     const brand = this.el("div", { class: "nium-brand" }, [
       mark,
       this.el("span", { class: "nium-wordmark", text: "nium." }),
