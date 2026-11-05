@@ -1213,22 +1213,17 @@ tooltip {
 
 /* ---- Lateral: abas com movimento suave ---- */
 #tabbrowser-tabs[orient="vertical"] {
-  /* (a aba arrastada fica sem transição, para seguir o mouse sem atraso) */
-  .tabbrowser-tab:not([dragtarget]) {
-    transition: transform .2s var(--nium-ease), opacity .2s var(--nium-ease) !important;
-  }
+  /* Aba nova entra deslizando (o arrastar fica com as animações do próprio Firefox) */
   .tabbrowser-tab[fadein]:not([pinned]) > .tab-stack {
     animation: nium-tab-in .24s var(--nium-ease);
   }
   .tab-background {
     transition: background-color .16s var(--nium-ease), box-shadow .2s var(--nium-ease);
   }
-  /* Aba sendo arrastada: levanta um pouco, com sombra */
+  /* Aba sendo arrastada: só uma sombra (sem mexer no tamanho nem na posição) */
   .tabbrowser-tab[dragtarget] .tab-background {
     box-shadow: 0 10px 24px -10px rgba(5, 20, 18, .55) !important;
-    background-color: var(--tab-selected-bgcolor, light-dark(#f7f9f4, #1a282d)) !important;
   }
-  .tabbrowser-tab[dragtarget] { z-index: 2; scale: 1.02; }
   /* Fechar aba: um "x" pequeno e fino, num círculo só no hover */
   .tab-close-button {
     list-style-image: url("chrome://browser/content/nium/icons/close.svg") !important;
@@ -1499,4 +1494,22 @@ sidebar-main[expanded] .nium-wordmark {
 }
 @media (prefers-reduced-motion: reduce) {
   sidebar-main[expanded] .nium-wordmark, #nium-zoom { animation: none !important; }
+}
+
+/* Durante o arrastar: sem "x" nem animação de entrada atrapalhando */
+#tabbrowser-tabs[movingtab] .tab-close-button { display: none !important; }
+#tabbrowser-tabs[movingtab] .tab-stack { animation: none !important; }
+
+/* Juntar abas num grupo: a cor do Nium no lugar do azul/roxo do Firefox */
+#tabbrowser-tabs, tab-group {
+  --dragover-tab-group-color: light-dark(#3f6f5c, #9cbfae) !important;
+  --dragover-tab-group-color-pale: light-dark(#dcece4, #1d362d) !important;
+  --dragover-tab-group-color-invert: light-dark(#ffffff, #0f181c) !important;
+}
+
+/* Grupo recolhido na lateral: só o nome/ícone do grupo, sem as abas embaixo (ao abrir o grupo, volta tudo) */
+#tabbrowser-tabs[orient="vertical"] tab-group[collapsed]:not([movingtabgroup]) > .tabbrowser-tab,
+#tabbrowser-tabs[orient="vertical"] tab-group[collapsed]:not([movingtabgroup]) > tab-split-view-wrapper,
+#tabbrowser-tabs[orient="vertical"] tab-group[collapsed] > .tab-group-overflow-count-container {
+  display: none !important;
 }
