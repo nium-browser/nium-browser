@@ -610,4 +610,166 @@ panel {
   > strong { font-weight: 600; }
   > span { font-size: 12px; color: var(--nium-muted); }
 }
+/* Nium AI (painel) */
+#nium-ai-button { list-style-image: url("chrome://global/skin/icons/highlights.svg"); }
+.nium-ai-intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 18px 8px 22px;
+  h3 { margin: 14px 0 6px; font: 650 18px "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif; letter-spacing: -.015em; }
+  p { margin: 0; color: var(--nium-muted); line-height: 1.55; }
+}
+.nium-ai-orb {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--color-accent-primary, #3f6f5c) 16%, transparent);
+  color: var(--color-accent-primary, #3f6f5c);
+  > .nium-sb-icon { width: 22px; height: 22px; }
+}
+.nium-ai-setup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid var(--nium-line-2);
+  background: var(--nium-surface-2);
+  p { margin: 0; line-height: 1.55; color: var(--nium-muted); }
+  ol { margin: 0; padding-inline-start: 20px; line-height: 1.7; }
+}
+.nium-ai-model {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid var(--nium-line);
+}
+.nium-ai-model-text { display: flex; flex-direction: column; gap: 2px; small { color: var(--nium-muted); line-height: 1.4; } }
+.nium-ai-badge { font-size: 12px; color: var(--color-accent-primary, #3f6f5c); font-weight: 600; }
+.nium-ai-pull { display: flex; flex-direction: column; gap: 4px; padding-bottom: 8px; }
+.nium-ai-bar { display: block; height: 6px; border-radius: 999px; background: var(--nium-line-2); overflow: hidden; }
+.nium-ai-bar-fill { display: block; height: 100%; width: 0; background: var(--color-accent-primary, #3f6f5c); transition: width .2s; }
+.nium-ai-pull-label { color: var(--nium-muted); }
+.nium-ai-quick { display: flex; flex-direction: column; gap: 8px; }
+.nium-ai-action {
+  justify-content: flex-start !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--nium-line-2) !important;
+  background: var(--nium-surface-2);
+  text-align: start;
+  > span { display: flex; flex-direction: column; gap: 3px; }
+  small { color: var(--nium-muted); font-size: 12px; line-height: 1.4; }
+  > .nium-sb-icon { margin-top: 2px; }
+  &:hover:not(:disabled) { background: var(--nium-hover); }
+}
+.nium-ai-hint {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0 0 !important;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--nium-muted);
+  > .nium-sb-icon { width: 14px; height: 14px; margin-top: 2px; }
+}
+.nium-ai-entries { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+.nium-ai-entry {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--nium-line);
+  background: var(--nium-surface-2);
+}
+.nium-ai-entry-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+  > strong { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--nium-muted); }
+  .nium-icon-button { width: 26px; height: 26px; }
+  .nium-sb-icon { width: 14px; height: 14px; }
+}
+.nium-ai-quote {
+  margin: 0 0 8px !important;
+  padding-inline-start: 10px;
+  border-inline-start: 2px solid var(--nium-line-2);
+  color: var(--nium-muted);
+  font-style: italic;
+}
+.nium-ai-answer {
+  line-height: 1.6;
+  user-select: text;
+  -moz-user-select: text;
+  p { margin: 0 0 8px; }
+  ul { margin: 0 0 8px; padding-inline-start: 18px; }
+  li { margin-bottom: 4px; }
+}
+.nium-ai-thinking { color: var(--nium-muted); }
+.nium-ai-error { color: var(--text-color-error, #d94d4d); }
+.nium-ai-cite {
+  display: inline-grid !important;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  margin: 0 1px;
+  padding: 0 4px;
+  vertical-align: 1px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--color-accent-primary, #3f6f5c) 18%, transparent);
+  color: inherit;
+  font-size: 10.5px !important;
+  font-weight: 600;
+}
+.nium-ai-excerpt {
+  margin: 6px 0 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--nium-hover);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--nium-muted);
+  &[hidden] { display: none; }
+}
+.nium-ai-clear {
+  align-self: flex-start;
+  margin-top: 10px;
+  gap: 6px !important;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--nium-muted) !important;
+  font-size: 12px;
+  &:hover { background: var(--nium-hover); }
+  .nium-sb-icon { width: 14px; height: 14px; }
+}
+.nium-ai-form {
+  position: sticky;
+  bottom: -18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 16px -18px -18px;
+  padding: 12px 18px 14px;
+  border-top: 1px solid var(--nium-line);
+  background: var(--nium-surface);
+}
+.nium-ai-prompt { height: auto; min-height: 56px; padding: 8px 10px; resize: none; line-height: 1.45; }
+.nium-ai-form-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.nium-ai-toggle { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--nium-muted); }
+.nium-ai-foot {
+  display: flex;
+  gap: 8px;
+  > label { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; font-size: 11.5px; color: var(--nium-muted); }
+  .nium-select { width: 100%; height: 28px; }
+}
+.nium-ai-small { margin: 0 !important; font-size: 11px; color: var(--nium-dim); }
 /* --- Nium: fim --- */

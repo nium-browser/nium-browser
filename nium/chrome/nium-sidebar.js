@@ -174,6 +174,12 @@ var NiumSidebar = {
     this.takeOverSearchKey();
     this.registerActors();
     this.createSplitButton();
+    try {
+      Services.scriptloader.loadSubScript("chrome://browser/content/nium/nium-ai.js", window);
+      window.NiumAI.init();
+    } catch (e) {
+      console.error("Nium: Nium AI", e);
+    }
     this.updateShieldDot();
     // O uBlock pode terminar de ligar depois da janela abrir.
     setTimeout(() => this.updateShieldDot(), 3000);
@@ -486,6 +492,10 @@ var NiumSidebar = {
       this.panelIcon.src = "chrome://global/skin/icons/folder.svg";
       this.panelTitle.textContent = this.t.mySpaces;
       this.renderSpaces();
+    } else if (name === "ai") {
+      this.panelIcon.src = "chrome://global/skin/icons/highlights.svg";
+      this.panelTitle.textContent = "Nium AI";
+      window.NiumAI?.render(this.panelBody);
     } else if (name === "reading") {
       this.panelIcon.src = "chrome://browser/skin/reader-mode.svg";
       this.panelTitle.textContent = this.t.readingList;
