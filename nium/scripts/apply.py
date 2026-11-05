@@ -315,6 +315,10 @@ PATCHES = [
   # Barra lateral do Nium Electron: o script nium-sidebar.js entra em cada janela
   ('browser/base/jar.mn',
    ('        content/browser/browser-main.js                     (content/browser-main.js)\n'
+    '        content/browser/nium/                               (content/nium/*)\n'
+    '        content/browser/nium/core/notes/                    (content/nium/core/notes/*)\n'
+    '        content/browser/nium/core/shared/                   (content/nium/core/shared/*)\n',
+    '        content/browser/browser-main.js                     (content/browser-main.js)\n'
     '        content/browser/nium/nium-sidebar.js                (content/nium/nium-sidebar.js)\n'
     '        content/browser/nium/NiumCiteChild.sys.mjs          (content/nium/NiumCiteChild.sys.mjs)\n'
     '        content/browser/nium/core/notes/                    (content/nium/core/notes/*)\n'
@@ -326,10 +330,9 @@ PATCHES = [
     '        content/browser/browser-main.js                     (content/browser-main.js)\n'
     '        content/browser/nium/nium-sidebar.js                (content/nium/nium-sidebar.js)\n',
     '        content/browser/browser-main.js                     (content/browser-main.js)\n'),
+   # (content/nium/*) já inclui as subpastas (core/notes, core/shared)
    '        content/browser/browser-main.js                     (content/browser-main.js)\n'
-   '        content/browser/nium/                               (content/nium/*)\n'
-   '        content/browser/nium/core/notes/                    (content/nium/core/notes/*)\n'
-   '        content/browser/nium/core/shared/                   (content/nium/core/shared/*)\n'),
+   '        content/browser/nium/                               (content/nium/*)\n'),
   ('browser/base/content/browser.xhtml',
    '  <script src="chrome://browser/content/browser-main.js"></script>\n',
    '  <script src="chrome://browser/content/browser-main.js"></script>\n'
@@ -362,7 +365,10 @@ def patches():
     text = p.read_text(encoding='utf-8')
     olds = old if isinstance(old, tuple) else (old,)   # vários: versões antigas do próprio Nium
     found = next((o for o in olds if o in text), None)
-    if new in text:
+    bigger = next((o for o in olds if new in o and o in text), None)   # versão antiga que contém a nova
+    if bigger:
+      write_if_changed(p, text.replace(bigger, new, 1)); ok += 1
+    elif new in text:
       ok += 1   # já aplicado (por isso cada texto novo tem de ser único no arquivo)
     elif found:
       write_if_changed(p, text.replace(found, new, 1)); ok += 1
