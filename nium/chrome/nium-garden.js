@@ -114,9 +114,16 @@ void main(){
     };
     size();
     // As cores passam de um tema para o outro devagar, sem pular.
-    const now = structuredClone(THEMES[darkQuery.matches ? "dark" : "light"]);
+    // opts.gain: força das ondas (1 = como no site; menos = mais apagadas)
+    const gain = opts.gain ?? 1;
+    const pick = () => {
+      const T = structuredClone(THEMES[darkQuery.matches ? "dark" : "light"]);
+      T.uGain *= gain;
+      return T;
+    };
+    const now = pick();
     const theme = () => {
-      const T = THEMES[darkQuery.matches ? "dark" : "light"];
+      const T = pick();
       for (const k in T) {
         if (Array.isArray(T[k])) {
           now[k] = now[k].map((v, i) => v + (T[k][i] - v) * 0.14);
