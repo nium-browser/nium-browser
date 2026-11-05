@@ -1,4 +1,4 @@
-<!-- Nium: ilustração (a pedra com ondas do site) que substitui os mascotes do Firefox. MPL-2.0 -->
+<!-- Nium: ilustração (a lente de vidro sobre as ondas do site, sem ícone) que substitui os mascotes do Firefox. MPL-2.0 -->
 <svg xmlns="http://www.w3.org/2000/svg" width="200" height="160" viewBox="0 0 200 160" fill="none">
   <style>
     .w { stroke: #17302a; stroke-opacity: .16; stroke-width: 1.4; }
@@ -22,5 +22,4 @@
   <ellipse class="shade" cx="106" cy="91" rx="38" ry="37"/>
   <circle class="lens" cx="100" cy="80" r="38"/>
   <circle cx="100" cy="80" r="38" fill="url(#g)"/>
-  <path class="n" d="M88 94V66l24 28V66" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

@@ -148,6 +148,10 @@ def newtab():
       shutil.copyfile(src, dest / name)
   # Fontes e ondas do site (Fase 6)
   copy_tree(KIT / 'newtab' / 'assets', dest / 'assets')
+  # As ondas vivas do site (o mesmo arquivo das boas-vindas)
+  garden = KIT / 'chrome' / 'nium-garden.js'
+  if not (dest / 'nium-garden.js').exists() or (dest / 'nium-garden.js').read_bytes() != garden.read_bytes():
+    shutil.copyfile(garden, dest / 'nium-garden.js')
   html = (KIT / 'newtab' / 'activity-stream.html').read_text(encoding='utf-8')
   write_if_changed(nt / 'prerendered' / 'activity-stream.html', html)
   jar = nt / 'addon-jar.mn'

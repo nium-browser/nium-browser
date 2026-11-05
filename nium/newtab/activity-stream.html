@@ -14,17 +14,22 @@
     <link rel="stylesheet" href="resource://newtab/data/content/nium/newtab.css" />
   </head>
   <body>
+    <div class="garden" id="garden"></div>
     <main class="home-inner">
       <div class="home-topline">
-        <span class="date-line"><span class="sun-dot"></span><span id="date-label"></span></span>
+        <span class="date-line"><span class="sun-dot"></span></span>
         <button class="text-button" id="customize" type="button">
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
           <span id="customize-label">Customize</span>
         </button>
       </div>
-      <section class="hero">
-        <h1><span id="hero-a">The internet,</span> <em id="hero-b">at your pace.</em></h1>
-      </section>
+      <div class="stone" id="stone">
+        <span class="ripple" aria-hidden="true"></span><span class="ripple" aria-hidden="true"></span><span class="ripple" aria-hidden="true"></span>
+        <div class="lens" id="lens">
+          <p class="soon" id="date-label"></p>
+          <h1 id="hero">The internet, at your pace.</h1>
+        </div>
+      </div>
       <form id="home-search-form" class="hero-search" autocomplete="off">
         <span class="search-symbol"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></span>
         <input id="home-search" aria-label="Search the internet" placeholder="Where is your curiosity taking you?" />
@@ -45,6 +50,7 @@
         </div>
       </form>
     </dialog>
+    <script src="resource://newtab/data/content/nium/nium-garden.js"></script>
     <script src="resource://newtab/data/content/nium/newtab.js"></script>
   </body>
 </html>

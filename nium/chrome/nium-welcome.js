@@ -1,7 +1,8 @@
-/* Nium: boas-vindas na primeira vez (como no Nium Electron). MPL-2.0
+/* Nium: boas-vindas na primeira vez, com a cara do site do Nium. MPL-2.0
  *
- * Um cartão por cima da janela, em passos: idioma, aparência, pesquisa, privacidade, IA,
- * acessibilidade e "tudo pronto" (com importar de outro navegador). Cada escolha vale na hora e
+ * O jardim do site (areia viva, ondas e a lente de vidro) no começo e no fim; no meio, o "tour" do
+ * site: os passos à esquerda e as escolhas num palco de vidro à direita (aparência, pesquisa,
+ * privacidade, IA, acessibilidade). No fim, importar de outro navegador. Cada escolha vale na hora e
  * pode ser mudada depois. Aparece uma vez (nium.welcome.done); "Seu espaço" tem "Rever as boas-vindas".
  */
 "use strict";
@@ -15,6 +16,12 @@ var NiumWelcome = {
   STRINGS: {
     en: {
       titles: ["Welcome", "Appearance", "Search", "Privacy", "Nium AI", "Accessibility", "All set"],
+      heroSoon: "Welcome to Nium",
+      heroTitle: "The internet, at your pace.",
+      tourTitle: "Make it yours.",
+      tourLead: "Five quick choices. You can change all of them later in Your Nium.",
+      doneSoon: "All set",
+      doneTitle2: "Your Nium is ready.",
       welcomeTitle: "Welcome to Nium",
       welcomeText: "Let's make the browser yours. It takes less than a minute, and you can change everything later.",
       language: "Language",
@@ -75,6 +82,12 @@ var NiumWelcome = {
     },
     pt: {
       titles: ["Boas-vindas", "Aparência", "Pesquisa", "Privacidade", "Nium AI", "Acessibilidade", "Tudo pronto"],
+      heroSoon: "Boas-vindas ao Nium",
+      heroTitle: "A internet, no seu ritmo.",
+      tourTitle: "Do seu jeito.",
+      tourLead: "Cinco escolhas rápidas. Tudo pode ser mudado depois em Seu Nium.",
+      doneSoon: "Tudo pronto",
+      doneTitle2: "Seu Nium está pronto.",
       welcomeTitle: "Bem-vindo ao Nium",
       welcomeText: "Vamos deixar o navegador do seu jeito. Leva menos de um minuto, e tudo pode ser mudado depois.",
       language: "Idioma",
@@ -143,17 +156,6 @@ var NiumWelcome = {
     return pt ? this.STRINGS.pt : this.STRINGS.en;
   },
 
-  // Desenhos de cada passo (do Nium Electron).
-  ART: {
-    welcome: '<circle class="nw-ring" cx="60" cy="60" r="52"/><circle class="nw-ring" cx="60" cy="60" r="40"/><rect class="nw-tile" x="34" y="34" width="52" height="52" rx="14"/><path class="nw-draw" d="M48 74V46l24 28V46"/>',
-    look: '<rect class="nw-draw" x="18" y="26" width="84" height="66" rx="9"/><path class="nw-draw" d="M44 26v66"/><rect class="nw-bar" x="24" y="38" width="14" height="5" rx="2.5"/><rect class="nw-bar" x="24" y="49" width="14" height="5" rx="2.5"/><rect class="nw-bar" x="24" y="60" width="14" height="5" rx="2.5"/><rect class="nw-bar" x="52" y="38" width="42" height="24" rx="5"/>',
-    search: '<rect class="nw-draw" x="16" y="44" width="88" height="26" rx="13"/><circle class="nw-draw" cx="34" cy="57" r="6"/><path class="nw-draw" d="m38.5 61.5 4 4"/><rect class="nw-bar" x="50" y="54" width="40" height="6" rx="3"/><rect class="nw-bar" x="22" y="80" width="52" height="5" rx="2.5"/><rect class="nw-bar" x="22" y="90" width="36" height="5" rx="2.5"/>',
-    privacy: '<circle class="nw-ring" cx="60" cy="60" r="50"/><path class="nw-draw" d="M60 22l30 11v22c0 20-14 34-30 41-16-7-30-21-30-41V33z"/><path class="nw-draw" d="m47 59 9 9 18-19"/>',
-    ai: '<circle class="nw-ring" cx="60" cy="60" r="50"/><path class="nw-draw" d="M60 30l7 17 17 7-17 7-7 17-7-17-17-7 17-7z"/><circle class="nw-dot" cx="88" cy="32" r="3"/><circle class="nw-dot" cx="30" cy="88" r="2.5"/>',
-    access: '<text class="nw-aa" x="60" y="70" text-anchor="middle">Aa</text><rect class="nw-bar" x="26" y="88" width="68" height="4" rx="2"/><circle class="nw-tile" cx="44" cy="90" r="6"/>',
-    done: '<circle class="nw-dot" cx="60" cy="14" r="3"/><circle class="nw-dot" cx="100" cy="36" r="2.5"/><circle class="nw-dot" cx="104" cy="80" r="3"/><circle class="nw-dot" cx="60" cy="106" r="2.5"/><circle class="nw-dot" cx="16" cy="80" r="3"/><circle class="nw-dot" cx="20" cy="36" r="2.5"/><circle class="nw-draw" cx="60" cy="60" r="32"/><path class="nw-draw" d="m45 61 10 10 21-22"/>',
-  },
-
   // ---- quando aparece ----
   maybeShow() {
     if (Services.prefs.getBoolPref("nium.welcome.done", false)) return;
@@ -164,57 +166,94 @@ var NiumWelcome = {
     setTimeout(() => this.show(), 600);
   },
 
+  // A tela é o site do Nium: o jardim com a lente no primeiro e no último passo, e o "tour"
+  // (lista à esquerda, palco de vidro à direita) nos passos de escolha.
   show() {
     if (this.root) return;
     this.step = 0;
     const el = NiumSidebar.el.bind(NiumSidebar);
-    this.art = el("div", { class: "nw-art" });
-    this.stepsList = el("ol", { class: "nw-steps" });
+    if (!window.NiumGarden) {
+      try {
+        Services.scriptloader.loadSubScript("chrome://browser/content/nium/nium-garden.js", window);
+      } catch (e) {}
+    }
+    this.gardenEl = el("div", { class: "nw-garden" });
+    this.skipBtn = el("button", { class: "nw-ghost nw-skip", onclick: () => this.finish() });
+    const mark = el("img", { class: "nw-brand-mark", src: "chrome://browser/content/nium/assets/img/mark.svg", alt: "" });
+    // O jardim: a pedra com as ondas saindo e a lente de vidro
+    this.soon = el("p", { class: "nw-soon" });
+    this.title = el("h1", { tabindex: "-1" });
+    this.lens = el("div", { class: "nw-lens" }, [this.soon, this.title]);
+    this.heroBody = el("div", { class: "nw-hero-body" });
+    const ripples = [0, 1, 2].map(() => el("span", { class: "nw-ripple", "aria-hidden": "true" }));
+    this.hero = el("section", { class: "nw-hero" }, [el("div", { class: "nw-stone" }, [...ripples, this.lens]), this.heroBody]);
+    // O tour: lista dos passos e o palco de vidro
+    this.tourTitle = el("h2");
+    this.tourLead = el("p", { class: "nw-tour-lead" });
+    this.tourList = el("div", { class: "nw-tour-list", role: "tablist" });
     this.body = el("div", { class: "nw-body", "aria-live": "polite" });
-    this.progress = el("span");
-    this.skipBtn = el("button", { class: "nw-ghost", onclick: () => this.finish() });
     this.backBtn = el("button", { class: "nw-ghost", onclick: () => this.go(-1) });
-    this.nextBtn = el("button", { class: "nw-primary", onclick: () => (this.step === this.STEPS.length - 1 ? this.finish() : this.go(1)) });
-    const mark = el("span", { class: "nw-brand-mark" });
-    mark.append(this.svg('<path d="M8 23V9l16 14V9"/>', "0 0 32 32"));
-    this.root = el("div", { id: "nium-welcome", role: "dialog", "aria-modal": "true" }, [
-      el("div", { class: "nw-card" }, [
-        el("aside", { class: "nw-aside" }, [el("div", { class: "nw-brand" }, [mark, el("span", { text: "nium" })]), this.art, this.stepsList]),
-        el("div", { class: "nw-main" }, [
-          el("div", { class: "nw-progress" }, [this.progress]),
-          this.body,
-          el("footer", { class: "nw-footer" }, [this.skipBtn, el("span", { class: "nw-spacer" }), this.backBtn, this.nextBtn]),
-        ]),
+    this.nextBtn = el("button", { class: "nw-primary", onclick: () => this.go(1) });
+    this.tour = el("section", { class: "nw-tour" }, [
+      el("div", { class: "nw-tour-side" }, [this.tourTitle, this.tourLead, this.tourList]),
+      el("div", { class: "nw-stage" }, [
+        el("div", { class: "nw-plate" }, [this.body, el("footer", { class: "nw-footer" }, [el("span", { class: "nw-spacer" }), this.backBtn, this.nextBtn])]),
       ]),
+    ]);
+    this.root = el("div", { id: "nium-welcome", role: "dialog", "aria-modal": "true" }, [
+      this.gardenEl,
+      el("header", { class: "nw-top" }, [el("div", { class: "nw-brand" }, [mark, el("span", { text: "nium" })]), this.skipBtn]),
+      this.hero,
+      this.tour,
     ]);
     this.root.addEventListener("keydown", e => {
       if (e.key === "Escape") this.finish();
     });
     (document.body || document.documentElement).appendChild(this.root);
+    try {
+      this.garden = window.NiumGarden?.mount(this.gardenEl, { lens: this.lens });
+    } catch (e) {
+      console.warn("Nium: ondas", e);
+    }
     this.paint();
-    this.nextBtn.focus();
-  },
-
-  svg(inner, viewBox = "0 0 120 120") {
-    // Monta o SVG com DOMParser (o innerHTML da janela tira atributos de SVG).
-    const doc = new DOMParser().parseFromString(
-      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">${inner}</svg>`,
-      "image/svg+xml"
-    );
-    return document.importNode(doc.documentElement, true);
   },
 
   go(dir) {
+    if (this.step === this.STEPS.length - 1 && dir > 0) {
+      this.finish();
+      return;
+    }
+    this.dir = dir;
     this.step = Math.max(0, Math.min(this.STEPS.length - 1, this.step + dir));
     this.paint();
   },
 
-  async finish() {
+  finish() {
     Services.prefs.setBoolPref("nium.welcome.done", true);
     const root = this.root;
     this.root = null;
-    root?.classList.add("nw-leaving");
-    setTimeout(() => root?.remove(), 200);
+    if (!root) return;
+    root.classList.add("nw-leaving");
+    setTimeout(() => {
+      this.garden?.stop();
+      this.garden = null;
+      root.remove();
+    }, 420);
+  },
+
+  // O título se escreve sozinho e o ponto fica piscando, como no site.
+  type(node, text) {
+    const el = NiumSidebar.el.bind(NiumSidebar);
+    const chars = [...text];
+    const shown = el("span", { "aria-hidden": "true" }, chars.map((c, i) => {
+      const span = el("span", { class: i === chars.length - 1 ? "nw-ch nw-dot" : "nw-ch", text: c });
+      span.style.setProperty("--i", i);
+      return span;
+    }));
+    node.classList.remove("nw-go");
+    node.replaceChildren(el("span", { class: "nw-sr", text }), shown);
+    node.setAttribute("aria-label", text);
+    requestAnimationFrame(() => requestAnimationFrame(() => node.classList.add("nw-go")));
   },
 
   async paint() {
@@ -222,19 +261,48 @@ var NiumWelcome = {
     const el = NiumSidebar.el.bind(NiumSidebar);
     const name = this.STEPS[this.step];
     const last = this.step === this.STEPS.length - 1;
-    this.art.replaceChildren(this.svg(this.ART[name]));
-    this.stepsList.replaceChildren(
-      ...t.titles.map((title, i) =>
-        el("li", { class: i === this.step ? "on" : i < this.step ? "past" : "" }, [el("span", { class: "nw-step-dot" }), el("span", { text: title })])
-      )
-    );
-    this.progress.style.width = `${(this.step / (this.STEPS.length - 1)) * 100}%`;
+    const heroMode = this.step === 0 || last;
+    const was = this.root.dataset.mode;
+    this.root.dataset.mode = heroMode ? "hero" : "tour";
     this.skipBtn.textContent = t.skip;
     this.skipBtn.hidden = last;
+    if (heroMode) {
+      if (was !== "hero" || this.lastHero !== this.step) {
+        this.soon.textContent = this.step === 0 ? t.heroSoon : t.doneSoon;
+        this.type(this.title, this.step === 0 ? t.heroTitle : t.doneTitle2);
+        this.lastHero = this.step;
+      }
+      const go = el("button", { class: "nw-primary nw-pill", text: this.step === 0 ? t.start : t.finish, onclick: () => this.go(1) });
+      const parts = await (this.step === 0 ? this.step_welcome() : this.step_done());
+      this.heroBody.replaceChildren(go, ...parts);
+      this.garden?.setLens(this.lens);
+      return;
+    }
+    this.garden?.setLens(null);
+    this.tourTitle.textContent = t.tourTitle;
+    this.tourLead.textContent = t.tourLead;
+    const leads = { look: t.lookText, search: t.searchText, privacy: t.privacyText, ai: t.aiText, access: t.accessText };
+    const items = this.STEPS.slice(1, -1).map((stepName, k) => {
+      const index = k + 1;
+      const on = index === this.step;
+      const tab = el("button", { class: "nw-tour-tab", role: "tab", "aria-selected": String(on) }, [
+        el("strong", { text: t.titles[index] }),
+        el("span", { class: "nw-tour-more" }, [el("span", { text: leads[stepName] })]),
+      ]);
+      tab.addEventListener("click", () => {
+        this.dir = index > this.step ? 1 : -1;
+        this.step = index;
+        this.paint();
+      });
+      return tab;
+    });
+    this.tourList.replaceChildren(...items);
     this.backBtn.textContent = t.back;
-    this.backBtn.hidden = this.step === 0 || last;
-    this.nextBtn.textContent = this.step === 0 ? t.start : last ? t.finish : t.next;
+    this.nextBtn.textContent = t.next;
+    this.body.classList.remove("nw-in-next", "nw-in-back");
     this.body.replaceChildren(...(await this[`step_${name}`]()));
+    void this.body.offsetWidth;
+    this.body.classList.add(this.dir < 0 ? "nw-in-back" : "nw-in-next");
   },
 
   // ---- peças ----
@@ -262,9 +330,9 @@ var NiumWelcome = {
     ]);
   },
 
-  head(title, text) {
-    const el = NiumSidebar.el.bind(NiumSidebar);
-    return [el("h2", { text: title, tabindex: "-1" }), el("p", { class: "nw-lead", text })];
+  head() {
+    // O título e o texto de cada passo ficam na lista do tour, à esquerda.
+    return [];
   },
 
   // ---- passos ----
@@ -273,22 +341,24 @@ var NiumWelcome = {
     const el = NiumSidebar.el.bind(NiumSidebar);
     const names = { "pt-BR": "Português", "en-US": "English", "es-ES": "Español", es: "Español" };
     const available = Services.locale.availableLocales.filter(l => names[l]);
+    if (available.length < 2) return [];
     const current = Services.locale.appLocaleAsBCP47;
-    const langs = available.length > 1
-      ? [
-          el("p", { class: "nw-label", text: t.language }),
-          el(
-            "div",
-            { class: "nw-langs" },
-            available.map(l =>
-              this.choice(names[l], "", current === l, () => {
-                Services.locale.requestedLocales = [l];
-              })
-            )
-          ),
-        ]
-      : [];
-    return [el("h1", { text: t.welcomeTitle, tabindex: "-1" }), el("p", { class: "nw-lead", text: t.welcomeText }), ...langs];
+    // Idiomas em texto, embaixo do botão, como os links do site.
+    return [
+      el(
+        "div",
+        { class: "nw-langs", role: "group", "aria-label": t.language },
+        available.map(l => {
+          const b = el("button", { class: "nw-lang" + (current === l ? " on" : ""), "aria-pressed": String(current === l), text: names[l] });
+          b.addEventListener("click", () => {
+            Services.locale.requestedLocales = [l];
+            this.lastHero = null;
+            this.paint();
+          });
+          return b;
+        })
+      ),
+    ];
   },
 
   async step_look() {
@@ -426,7 +496,7 @@ var NiumWelcome = {
   async step_done() {
     const t = this.t;
     const el = NiumSidebar.el.bind(NiumSidebar);
-    const importBtn = el("button", { class: "nw-secondary" }, [el("span", { text: t.import })]);
+    const importBtn = el("button", { class: "nw-secondary nw-pill", text: t.import });
     importBtn.addEventListener("click", () => {
       try {
         const { MigrationUtils } = ChromeUtils.importESModule("resource:///modules/MigrationUtils.sys.mjs");
@@ -435,6 +505,6 @@ var NiumWelcome = {
         console.error("Nium: importar", e);
       }
     });
-    return [el("h1", { text: t.doneTitle, tabindex: "-1" }), el("p", { class: "nw-lead", text: t.doneText }), importBtn, el("p", { class: "nw-hint", text: t.tip })];
+    return [importBtn, el("p", { class: "nw-hint", text: t.tip })];
   },
 };

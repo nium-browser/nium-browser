@@ -22,16 +22,41 @@
 
   // Textos: português, espanhol ou inglês, pelo idioma do navegador.
   const STRINGS = {
-    en: { title: "New Tab", heroA: "The internet,", heroB: "at your pace.", placeholder: "Where is your curiosity taking you?", search: "Search the internet", customize: "Customize", done: "Done", add: "Add", addTitle: "Add shortcut", name: "Name", address: "Address", cancel: "Cancel", save: "Save", remove: "Remove", badUrl: "Type a web address, like example.com" },
-    pt: { title: "Nova aba", heroA: "A internet,", heroB: "no seu ritmo.", placeholder: "Para onde a sua curiosidade leva você?", search: "Pesquisar na internet", customize: "Personalizar", done: "Pronto", add: "Adicionar", addTitle: "Adicionar atalho", name: "Nome", address: "Endereço", cancel: "Cancelar", save: "Salvar", remove: "Remover", badUrl: "Digite um endereço, como exemplo.com" },
-    es: { title: "Nueva pestaña", heroA: "Internet,", heroB: "a tu ritmo.", placeholder: "¿A dónde te lleva tu curiosidad?", search: "Buscar en internet", customize: "Personalizar", done: "Listo", add: "Añadir", addTitle: "Añadir acceso directo", name: "Nombre", address: "Dirección", cancel: "Cancelar", save: "Guardar", remove: "Quitar", badUrl: "Escribe una dirección, como ejemplo.com" },
+    en: { title: "New Tab", hero: "The internet, at your pace.", placeholder: "Where is your curiosity taking you?", search: "Search the internet", customize: "Customize", done: "Done", add: "Add", addTitle: "Add shortcut", name: "Name", address: "Address", cancel: "Cancel", save: "Save", remove: "Remove", badUrl: "Type a web address, like example.com" },
+    pt: { title: "Nova aba", hero: "A internet, no seu ritmo.", placeholder: "Para onde a sua curiosidade leva você?", search: "Pesquisar na internet", customize: "Personalizar", done: "Pronto", add: "Adicionar", addTitle: "Adicionar atalho", name: "Nome", address: "Endereço", cancel: "Cancelar", save: "Salvar", remove: "Remover", badUrl: "Digite um endereço, como exemplo.com" },
+    es: { title: "Nueva pestaña", hero: "Internet, a tu ritmo.", placeholder: "¿A dónde te lleva tu curiosidad?", search: "Buscar en internet", customize: "Personalizar", done: "Listo", add: "Añadir", addTitle: "Añadir acceso directo", name: "Nombre", address: "Dirección", cancel: "Cancelar", save: "Guardar", remove: "Quitar", badUrl: "Escribe una dirección, como ejemplo.com" },
   };
-  const lang = String(navigator.language || "en").slice(0, 2).toLowerCase();
+  // O idioma do Nium (o mesmo das datas); o navigator.language pode vir em inglês por privacidade.
+  const locale = Intl.DateTimeFormat().resolvedOptions().locale || navigator.language || "en";
+  const lang = locale.slice(0, 2).toLowerCase();
   const T = STRINGS[lang] || STRINGS.en;
-  document.documentElement.lang = navigator.language || "en";
+  document.documentElement.lang = locale;
   document.title = T.title;
-  $("#hero-a").textContent = T.heroA;
-  $("#hero-b").textContent = T.heroB;
+  // O título se escreve sozinho, como no site (o texto inteiro já ocupa o lugar desde o começo).
+  {
+    const h = $("#hero");
+    const sr = document.createElement("span");
+    sr.className = "sr";
+    sr.textContent = T.hero;
+    const shown = document.createElement("span");
+    shown.setAttribute("aria-hidden", "true");
+    const chars = [...T.hero];
+    chars.forEach((c, i) => {
+      const span = document.createElement("span");
+      span.textContent = c;
+      span.className = i === chars.length - 1 ? "ch dot" : "ch";
+      span.style.setProperty("--i", i);
+      shown.append(span);
+    });
+    h.replaceChildren(sr, shown);
+    requestAnimationFrame(() => h.classList.add("go"));
+  }
+  // A areia com ondas, viva como no site (se o computador aguentar).
+  try {
+    if (window.NiumGarden) NiumGarden.mount($("#garden"), { lens: $("#lens") });
+  } catch (e) {
+    console.warn("Nium: ondas", e);
+  }
   $("#home-search").placeholder = T.placeholder;
   $("#home-search").setAttribute("aria-label", T.search);
   $("#customize-label").textContent = T.customize;
@@ -192,7 +217,7 @@
   });
 
   // ---- data ----
-  $("#date-label").textContent = new Date().toLocaleDateString(undefined, {
+  $("#date-label").textContent = new Date().toLocaleDateString(locale, {
     weekday: "long", month: "long", day: "numeric",
   });
 
