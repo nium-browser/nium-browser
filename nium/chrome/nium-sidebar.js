@@ -42,6 +42,7 @@ var NiumSidebar = {
       openSettings: "All settings",
       openShortcuts: "Keyboard shortcuts",
       openAddons: "Extensions and themes",
+      openWelcome: "Show the welcome again",
       gesturesLabel: "Mouse gestures",
       gesturesHelp: "Hold the right button, drag and release: ← back, → forward, ↑ new tab, ↓ reload, ↓→ close tab, ↑→ next tab, ↑← previous tab.",
       readingList: "Reading list",
@@ -106,6 +107,7 @@ var NiumSidebar = {
       openSettings: "Todas as configurações",
       openShortcuts: "Atalhos de teclado",
       openAddons: "Extensões e temas",
+      openWelcome: "Rever as boas-vindas",
       gesturesLabel: "Gestos do mouse",
       gesturesHelp: "Segure o botão direito, arraste e solte: ← voltar, → avançar, ↑ nova aba, ↓ recarregar, ↓→ fechar aba, ↑→ próxima aba, ↑← aba anterior.",
       readingList: "Lista de leitura",
@@ -179,6 +181,12 @@ var NiumSidebar = {
       window.NiumAI.init();
     } catch (e) {
       console.error("Nium: Nium AI", e);
+    }
+    try {
+      Services.scriptloader.loadSubScript("chrome://browser/content/nium/nium-welcome.js", window);
+      window.NiumWelcome.maybeShow();
+    } catch (e) {
+      console.error("Nium: boas-vindas", e);
     }
     this.updateShieldDot();
     // O uBlock pode terminar de ligar depois da janela abrir.
@@ -695,7 +703,11 @@ var NiumSidebar = {
       this.el("div", { class: "nium-subheading", text: "" }),
       link(t.openSettings, "chrome://global/skin/icons/settings.svg", () => openPreferences()),
       link(t.openShortcuts, "chrome://global/skin/icons/search-glass.svg", () => openTrustedLinkIn("about:keyboard", "tab")),
-      link(t.openAddons, "chrome://mozapps/skin/extensions/extension.svg", () => BrowserAddonUI.openAddonsMgr("addons://list/extension"))
+      link(t.openAddons, "chrome://mozapps/skin/extensions/extension.svg", () => BrowserAddonUI.openAddonsMgr("addons://list/extension")),
+      link(t.openWelcome, "chrome://global/skin/icons/info.svg", () => {
+        this.closePanel();
+        window.NiumWelcome?.show();
+      })
     );
   },
 
