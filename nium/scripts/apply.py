@@ -355,6 +355,16 @@ PATCHES = [
   ('toolkit/components/ml/content/Utils.sys.mjs',
    '  "https://localhost/",\n];',
    '  "https://localhost/",\n  // Nium AI: modelos Leve e Padrão (Apache-2.0)\n  "https://huggingface.co/qwen/qwen2.5-0.5b-instruct-gguf/",\n  "https://huggingface.co/qwen/qwen2.5-1.5b-instruct-gguf/",\n];'),
+  # Configurações: página "Seu Nium" (about:preferences#nium), primeira do menu
+  ('browser/components/preferences/preferences.xhtml',
+   '  <script src="chrome://browser/content/preferences/preferences.js"/>\n',
+   '  <script src="chrome://browser/content/preferences/preferences.js"/>\n  <script src="chrome://browser/content/nium/nium-prefs.js"/>\n  <link rel="stylesheet" href="chrome://browser/content/nium/nium-prefs.css" />\n'),
+  ('browser/components/preferences/preferences.xhtml',
+   '    <html:moz-page-nav id="categories" data-l10n-id="category-nav-heading" allownoselection="true">\n',
+   '    <html:moz-page-nav id="categories" data-l10n-id="category-nav-heading" allownoselection="true">\n      <html:moz-page-nav-button id="category-nium"\n        view="paneNium"\n        iconsrc="chrome://browser/content/nium/nium-mark.svg">Nium\n      </html:moz-page-nav-button>\n'),
+  ('browser/components/preferences/preferences.js',
+   '  register_module("panePrivacy", gPrivacyPane);\n',
+   '  register_module("panePrivacy", gPrivacyPane);\n  register_module("paneNium", gNiumPane); // Nium\n'),
   # about:logins: tira as instruções de sincronizar com conta Mozilla
   ('browser/components/aboutlogins/content/aboutLogins.html', '        <ul>\n          <li data-l10n-id="login-intro-instructions-fxa2">', '        <ul hidden>\n          <li data-l10n-id="login-intro-instructions-fxa2">'),
 ]

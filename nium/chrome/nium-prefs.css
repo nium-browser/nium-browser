@@ -1,0 +1,68 @@
+/* Nium: página "Seu Nium" nas configurações. MPL-2.0 */
+#niumPane {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 664px;
+  &[hidden] { display: none; }
+}
+.nium-pref-header { margin-bottom: 8px; }
+.nium-pref-group {
+  padding: 16px 0 20px;
+  border-top: 1px solid var(--border-color-card, color-mix(in srgb, currentColor 12%, transparent));
+  & > h2 { margin: 0 0 4px; font-size: var(--font-size-large, 1.14em); font-weight: var(--font-weight-semibold, 600); }
+  & > p { margin: 0 0 12px; }
+}
+.nium-pref-row { padding: 8px 0; }
+.nium-pref-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 6px 0;
+  &[hidden] { display: none; }
+  & select, & input { min-width: 200px; margin: 0; }
+  & input[type="number"] { min-width: 90px; width: 90px; }
+}
+.nium-pref-sub { padding-inline-start: 24px; }
+.nium-pref-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 24px;
+  & .nium-pref-field select { min-width: 140px; }
+}
+.nium-pref-buttons { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 8px; }
+.nium-pref-button { margin: 0; }
+.nium-pref-keys {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  & li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 7px 0;
+    border-bottom: 1px solid color-mix(in srgb, currentColor 8%, transparent);
+  }
+  & li:last-child { border-bottom: 0; }
+  & kbd {
+    font: inherit;
+    font-size: .92em;
+    padding: 2px 8px;
+    border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+    border-bottom-width: 2px;
+    border-radius: 6px;
+  }
+}
+.nium-pref-about {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  & img { width: 40px; height: 40px; }
+  & strong { display: block; }
+  & small { opacity: .7; }
+}

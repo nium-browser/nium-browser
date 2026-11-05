@@ -7,17 +7,30 @@
  * (nium.gestures.enabled), ligado em "Seu espaço".
  */
 
-const THRESHOLD = 60; // pixels por direção, o padrão do Electron
 const MAX_TIME = 5000;
-const BINDINGS = {
+// Os mesmos de fábrica do Electron; mudam em "Seu Nium" (nium.gestures.bindings e .threshold).
+const DEFAULTS = {
   L: "back",
   R: "forward",
   U: "newTab",
   D: "reload",
   DR: "closeTab",
+  DL: "none",
   UR: "nextTab",
   UL: "previousTab",
 };
+
+function bindings() {
+  try {
+    return { ...DEFAULTS, ...JSON.parse(Services.prefs.getStringPref("nium.gestures.bindings", "{}")) };
+  } catch (e) {
+    return DEFAULTS;
+  }
+}
+
+function threshold() {
+  return Math.min(160, Math.max(30, Services.prefs.getIntPref("nium.gestures.threshold", 60)));
+}
 
 export class NiumGesturesChild extends JSWindowActorChild {
   stroke = null;
@@ -35,7 +48,7 @@ export class NiumGesturesChild extends JSWindowActorChild {
           !event.metaKey &&
           Services.prefs.getBoolPref("nium.gestures.enabled", false)
         ) {
-          this.stroke = { x: event.screenX, y: event.screenY, path: "", invalid: false, start: Date.now() };
+          this.stroke = { x: event.screenX, y: event.screenY, path: "", invalid: false, start: Date.now(), threshold: threshold() };
         }
         break;
       case "mousemove":
@@ -67,7 +80,7 @@ export class NiumGesturesChild extends JSWindowActorChild {
     const dy = y - s.y;
     const big = Math.max(Math.abs(dx), Math.abs(dy));
     const small = Math.min(Math.abs(dx), Math.abs(dy));
-    if (big < THRESHOLD || big < small * 1.4) return; // pouco ou na diagonal
+    if (big < s.threshold || big < small * 1.4) return; // pouco ou na diagonal
     const dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "R" : "L") : dy > 0 ? "D" : "U";
     if (s.path.at(-1) !== dir) s.path += dir;
     s.x = x;
@@ -83,7 +96,7 @@ export class NiumGesturesChild extends JSWindowActorChild {
       return; // não arrastou: menu normal
     }
     this.suppressUntil = Date.now() + 600;
-    const action = !s.invalid && BINDINGS[s.path];
+    const action = !s.invalid && bindings()[s.path];
     // Mantém o traço até o "contextmenu" (que vem depois do mouseup no Windows).
     setTimeout(() => (this.stroke = null), 0);
     if (action) this.sendAsyncMessage("Nium:Gesture", { action });

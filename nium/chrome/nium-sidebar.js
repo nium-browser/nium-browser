@@ -701,7 +701,7 @@ var NiumSidebar = {
       this.el("button", { class: "nium-link-row", onclick: action }, [this.icon(icon), this.el("span", { text: label })]);
     body.append(
       this.el("div", { class: "nium-subheading", text: "" }),
-      link(t.openSettings, "chrome://global/skin/icons/settings.svg", () => openPreferences()),
+      link(t.openSettings, "chrome://global/skin/icons/settings.svg", () => openPreferences("paneNium")),
       link(t.openShortcuts, "chrome://global/skin/icons/search-glass.svg", () => openTrustedLinkIn("about:keyboard", "tab")),
       link(t.openAddons, "chrome://mozapps/skin/extensions/extension.svg", () => BrowserAddonUI.openAddonsMgr("addons://list/extension")),
       link(t.openWelcome, "chrome://global/skin/icons/info.svg", () => {
