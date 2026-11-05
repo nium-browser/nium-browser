@@ -82,3 +82,8 @@ pref("browser.uidensity", 1);
 // Nium Shield (uBlock Origin) vem na pasta do perfil: liga sem perguntar só as extensões
 // dessa pasta (as de outros lugares continuam pedindo confirmação)
 pref("extensions.autoDisableScopes", 14);
+
+// Idioma: o do Windows (português, espanhol…) quando o pacote de idioma estiver instalado
+pref("intl.locale.requested", "");
+// O pacote de idioma é feito na própria compilação (sem assinatura da Mozilla)
+pref("extensions.langpacks.signatures.required", false);

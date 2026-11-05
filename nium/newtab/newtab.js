@@ -19,6 +19,27 @@
   const KEY = "nium.shortcuts";
   const MAX = 10;
   const $ = s => document.querySelector(s);
+
+  // Textos: português, espanhol ou inglês, pelo idioma do navegador.
+  const STRINGS = {
+    en: { title: "New Tab", heroA: "The internet,", heroB: "at your pace.", placeholder: "Where is your curiosity taking you?", search: "Search the internet", customize: "Customize", done: "Done", add: "Add", addTitle: "Add shortcut", name: "Name", address: "Address", cancel: "Cancel", save: "Save", remove: "Remove", badUrl: "Type a web address, like example.com" },
+    pt: { title: "Nova aba", heroA: "A internet,", heroB: "no seu ritmo.", placeholder: "Para onde a sua curiosidade leva você?", search: "Pesquisar na internet", customize: "Personalizar", done: "Pronto", add: "Adicionar", addTitle: "Adicionar atalho", name: "Nome", address: "Endereço", cancel: "Cancelar", save: "Salvar", remove: "Remover", badUrl: "Digite um endereço, como exemplo.com" },
+    es: { title: "Nueva pestaña", heroA: "Internet,", heroB: "a tu ritmo.", placeholder: "¿A dónde te lleva tu curiosidad?", search: "Buscar en internet", customize: "Personalizar", done: "Listo", add: "Añadir", addTitle: "Añadir acceso directo", name: "Nombre", address: "Dirección", cancel: "Cancelar", save: "Guardar", remove: "Quitar", badUrl: "Escribe una dirección, como ejemplo.com" },
+  };
+  const lang = String(navigator.language || "en").slice(0, 2).toLowerCase();
+  const T = STRINGS[lang] || STRINGS.en;
+  document.documentElement.lang = navigator.language || "en";
+  document.title = T.title;
+  $("#hero-a").textContent = T.heroA;
+  $("#hero-b").textContent = T.heroB;
+  $("#home-search").placeholder = T.placeholder;
+  $("#home-search").setAttribute("aria-label", T.search);
+  $("#customize-label").textContent = T.customize;
+  $("#add-title").textContent = T.addTitle;
+  $("#lbl-name").textContent = T.name;
+  $("#lbl-url").textContent = T.address;
+  $("#add-cancel").textContent = T.cancel;
+  document.querySelector('button[value="save"]').textContent = T.save;
   const svg = name => `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] || ICONS.globe}</svg>`;
 
   // ---- dados: guardados no IndexedDB da nova aba (o localStorage não sobrevive aqui) ----
@@ -117,7 +138,7 @@
       const remove = document.createElement("button");
       remove.className = "remove";
       remove.type = "button";
-      remove.title = "Remove";
+      remove.title = T.remove;
       remove.textContent = "×";
       remove.addEventListener("click", e => {
         e.preventDefault();
@@ -135,7 +156,7 @@
       const add = document.createElement("button");
       add.type = "button";
       add.className = "shortcut add";
-      add.innerHTML = `<span class="shortcut-icon">${svg("plus")}</span><span>Add</span>`;
+      add.innerHTML = `<span class="shortcut-icon">${svg("plus")}</span><span>${T.add}</span>`;
       add.addEventListener("click", openAdd);
       box.appendChild(add);
     }
@@ -152,7 +173,7 @@
     const url = normalizeUrl(form.url.value);
     if (!url) {
       e.preventDefault();
-      form.url.setCustomValidity("Type a web address, like example.com");
+      form.url.setCustomValidity(T.badUrl);
       form.url.reportValidity();
       return;
     }
@@ -166,7 +187,7 @@
   $("#customize").addEventListener("click", () => {
     editing = !editing;
     $("#customize").setAttribute("aria-pressed", String(editing));
-    $("#customize-label").textContent = editing ? "Done" : "Customize";
+    $("#customize-label").textContent = editing ? T.done : T.customize;
     render();
   });
 

@@ -381,6 +381,95 @@ def patches():
   say(f'textos do Firefox ajustados ({ok} ok, {miss} pulados)')
 
 
+# --- Português (pacote de idioma pt-BR) ----------------------------------------
+L10N_REPO = 'https://github.com/mozilla-l10n/firefox-l10n.git'
+L10N_LOCALES = ('pt-BR',)
+# As mesmas trocas de texto do Nium, nas traduções (caminhos dentro de firefox-l10n/<idioma>/)
+L10N_PATCHES = {
+  'pt-BR': [
+    ('toolkit/toolkit/branding/brandings.ftl', '-firefox-suggest-brand-name = Sugestões Firefox', '-firefox-suggest-brand-name = Sugestões Nium'),
+    ('toolkit/toolkit/branding/brandings.ftl', '-firefox-home-brand-name = Página inicial do Firefox', '-firefox-home-brand-name = Página inicial do Nium'),
+    ('toolkit/toolkit/branding/brandings.ftl', '-firefoxview-brand-name = Firefox View', '-firefoxview-brand-name = Nium View'),
+    ('toolkit/toolkit/branding/brandings.ftl', '-firefoxlabs-brand-name = Firefox Labs', '-firefoxlabs-brand-name = Nium Labs'),
+    ('toolkit/toolkit/branding/brandings.ftl', '-screenshots-brand-name = Firefox Screenshots', '-screenshots-brand-name = Nium Screenshots'),
+    ('toolkit/toolkit/branding/brandings.ftl', '-translations-brand-name = Firefox Translations', '-translations-brand-name = Nium Translations'),
+    ('browser/browser/browserSets.ftl', 'private-browsing-shortcut =\n    .key = P', 'private-browsing-shortcut =\n    .key = N'),
+    ('browser/browser/browserSets.ftl', 'search-tabs-shortcut =\n    .key = A', 'search-tabs-shortcut =\n    .key = K'),
+    ('browser/browser/browserSets.ftl', 'toggle-sidebar-shortcut =\n    .key = Z', 'toggle-sidebar-shortcut =\n    .key = B'),
+    ('browser/browser/browserSets.ftl', 'ai-chatbot-sidebar-shortcut =\n    .key = X', 'ai-chatbot-sidebar-shortcut =\n    .key = A'),
+    ('browser/browser/preferences/preferences.ftl', 'account-sync-section =\n    .heading = Conta e sincronização', 'account-sync-section =\n    .heading = Essenciais'),
+    ('browser/browser/preferences/preferences.ftl', 'pane-account-sync-title2 = Conta e sincronização\n    .title = Conta e sincronização', 'pane-account-sync-title2 = Essenciais\n    .title = Essenciais'),
+    ('browser/browser/unifiedExtensions.ftl', 'unified-extensions-empty-reason-zero-extensions-onboarding2 = Algumas extensões fazem muita diferença', 'unified-extensions-empty-reason-zero-extensions-onboarding2 = Nenhuma extensão ainda'),
+    ('browser/browser/unifiedExtensions.ftl', 'unified-extensions-empty-content-explain-extensions-onboarding2 = Temos recomendações para te ajudar a melhorar foco, privacidade e muito mais.', 'unified-extensions-empty-content-explain-extensions-onboarding2 = Adicione extensões para bloquear anúncios, preencher senhas e mais. Selecione “{ unified-extensions-manage-extensions.label }” para começar.'),
+  ],
+}
+
+
+def l10n():
+  """Baixa (ou atualiza) as traduções do Firefox ao lado do código e aplica os textos do Nium."""
+  base = FIREFOX.parent / 'firefox-l10n'
+  git = lambda *a: subprocess.run(['git', '-C', str(base), *a], capture_output=True, text=True, encoding='utf-8')
+  try:
+    if not (base / '.git').exists():
+      say('baixando as traduções (pt-BR), só na primeira vez…')
+      r = subprocess.run(['git', 'clone', '--depth', '1', '--filter=blob:none', '--sparse', L10N_REPO, str(base)],
+                         capture_output=True, text=True, encoding='utf-8')
+      if r.returncode:
+        raise RuntimeError(r.stderr.strip()[-300:])
+      git('sparse-checkout', 'set', *L10N_LOCALES)
+    else:
+      git('checkout', '--', '.')
+      f = git('fetch', '--depth', '1', 'origin', 'main')
+      if f.returncode == 0:
+        git('reset', '--hard', 'origin/main')
+  except Exception as e:
+    say(f'AVISO: não consegui baixar as traduções ({e}); o Nium fica em inglês por enquanto')
+    return
+  ok = miss = 0
+  for loc, items in L10N_PATCHES.items():
+    for rel, old, new in items:
+      p = base / loc / rel
+      if not p.exists():
+        miss += 1; continue
+      text = p.read_text(encoding='utf-8')
+      if new in text:
+        ok += 1
+      elif old in text:
+        write_if_changed(p, text.replace(old, new, 1)); ok += 1
+      else:
+        say(f'AVISO: tradução mudou em {loc}/{rel} — pulei: {old[:50]!r}'); miss += 1
+  say(f'traduções prontas ({ok} textos do Nium, {miss} pulados)')
+
+
+def langpack():
+  """Depois de ./mach build langpack-pt-BR: instala o pacote de idioma no perfil de teste."""
+  import zipfile
+  import json as _json
+  dist = FIREFOX / 'obj-nium' / 'dist'
+  profile = FIREFOX / 'obj-nium' / 'tmp' / 'profile-default'
+  if not dist.exists() or not profile.exists():
+    return
+  for loc in L10N_LOCALES:
+    found = sorted(dist.glob(f'**/*{loc}.langpack.xpi'), key=lambda p: p.stat().st_mtime)
+    if not found:
+      say(f'(pacote {loc} ainda não feito: rode ./mach build langpack-{loc} e depois o apply.py de novo)')
+      continue
+    xpi = found[-1]
+    try:
+      with zipfile.ZipFile(xpi) as z:
+        manifest = _json.loads(z.read('manifest.json'))
+      gecko = (manifest.get('browser_specific_settings') or manifest.get('applications') or {}).get('gecko', {})
+      addon_id = gecko['id']
+    except Exception as e:
+      say(f'AVISO: não consegui ler {xpi.name} ({e})')
+      continue
+    dest = profile / 'extensions' / (addon_id + '.xpi')
+    dest.parent.mkdir(exist_ok=True)
+    if not dest.exists() or dest.read_bytes() != xpi.read_bytes():
+      shutil.copyfile(xpi, dest)
+    say(f'idioma {loc} instalado no perfil de teste')
+
+
 def revert():
   shutil.rmtree(FIREFOX / 'browser' / 'branding' / 'nium', ignore_errors=True)
   shutil.rmtree(FIREFOX / 'browser' / 'themes' / 'addons' / 'nium', ignore_errors=True)
@@ -400,6 +489,9 @@ def revert():
   backup = FIREFOX / 'mozconfig.antes-do-nium'
   if backup.exists():
     backup.rename(m)
+  base = FIREFOX.parent / 'firefox-l10n'
+  if (base / '.git').exists():
+    subprocess.call(['git', '-C', str(base), 'checkout', '--', '.'])
   say('Nium desfeito')
 
 
@@ -421,8 +513,10 @@ def main():
   patches()
   prefs()
   ublock()
+  l10n()
+  langpack()
   mozconfig()
-  say('pronto. Agora: ./mach build && ./mach run')
+  say('pronto. Agora: ./mach build && ./mach build langpack-pt-BR && python3 ../nium-browser/nium/scripts/apply.py && ./mach run')
 
 
 if __name__ == '__main__':

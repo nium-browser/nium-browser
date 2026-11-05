@@ -23,7 +23,7 @@
         </button>
       </div>
       <section class="hero">
-        <h1>The internet, <em>at your pace.</em></h1>
+        <h1><span id="hero-a">The internet,</span> <em id="hero-b">at your pace.</em></h1>
       </section>
       <form id="home-search-form" class="hero-search" autocomplete="off">
         <span class="search-symbol"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></span>
@@ -37,8 +37,8 @@
     <dialog id="add-dialog">
       <form method="dialog" id="add-form">
         <h2 id="add-title">Add shortcut</h2>
-        <label>Name<input name="title" maxlength="40" required /></label>
-        <label>Address<input name="url" maxlength="2000" required placeholder="example.com" /></label>
+        <label><span id="lbl-name">Name</span><input name="title" maxlength="40" required /></label>
+        <label><span id="lbl-url">Address</span><input name="url" maxlength="2000" required placeholder="example.com" /></label>
         <div class="dialog-buttons">
           <button type="button" class="secondary" id="add-cancel">Cancel</button>
           <button type="submit" class="primary" value="save">Save</button>
