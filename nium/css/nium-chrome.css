@@ -1055,8 +1055,8 @@ panel {
 }
 /* Escudo do Firefox (o Nium Shield já fica na lateral) e seletor de busca só ao clicar na barra */
 #tracking-protection-icon-container { display: none !important; }
-#urlbar:not([focused]) .searchmode-switcher,
-#urlbar:not([focused]) #urlbar-searchmode-switcher { display: none !important; }
+.searchmode-switcher,
+#urlbar-searchmode-switcher { display: none !important; }
 /* Botões da direita: só Nium AI, tela dividida, downloads (quando há) e menu */
 #alltabs-button,
 #ai-window-toggle,
@@ -1278,8 +1278,52 @@ tooltip {
 }
 
 /* Lateral recolhida: sem "x" por cima do ícone do site (feche com Ctrl+W ou o botão do meio) */
-sidebar-main:not([expanded]) .tab-close-button,
-#tabbrowser-tabs[orient="vertical"]:not([expanded]) .tab-close-button {
+sidebar-main:not([expanded]) .tab-close-button {
   display: none !important;
 }
 :root:not([sidebar-expand-on-hover]) sidebar-main[expanded] .tabbrowser-tab[selected] .tab-close-button { opacity: .6; }
+
+/* ---- Ajustes de cor e tamanho (5/11) ---- */
+:root {
+  /* Realces escuros e discretos (nada de quadrado claro atrás dos ícones) */
+  --toolbarbutton-hover-background: light-dark(rgba(23, 48, 42, .07), rgba(233, 241, 237, .07)) !important;
+  --toolbarbutton-active-background: light-dark(rgba(23, 48, 42, .11), rgba(233, 241, 237, .1)) !important;
+  --button-background-color-ghost-hover: light-dark(rgba(23, 48, 42, .07), rgba(233, 241, 237, .07)) !important;
+  --button-background-color-ghost-active: light-dark(rgba(23, 48, 42, .11), rgba(233, 241, 237, .1)) !important;
+  --button-background-color-ghost-selected: light-dark(rgba(23, 48, 42, .09), rgba(233, 241, 237, .08)) !important;
+  /* Verde do Nium no lugar do azul/ciano do Firefox (foco, links, endereços nas sugestões) */
+  --focus-outline-color: light-dark(#3f6f5c, #9cbfae) !important;
+  --toolbar-field-focus-border-color: light-dark(#3f6f5c, #7fa595) !important;
+  --link-color: light-dark(#3f6f5c, #9cbfae) !important;
+  --link-color-hover: light-dark(#335c4c, #b2cfc1) !important;
+  --urlbarView-url-color: light-dark(#3f6f5c, #9cbfae) !important;
+  --urlbarView-action-color: light-dark(#5a6f69, #9fb2ac) !important;
+}
+#urlbar[focused] > .urlbar-background {
+  outline-color: light-dark(rgba(63, 111, 92, .5), rgba(156, 191, 174, .45)) !important;
+  border-color: light-dark(rgba(63, 111, 92, .5), rgba(156, 191, 174, .45)) !important;
+}
+.urlbar-input { color: inherit !important; }
+.urlbarView-url { color: var(--urlbarView-url-color) !important; }
+/* Ícones de dentro da barra de endereço menores, com o círculo escuro no hover */
+#urlbar .urlbar-page-action,
+#urlbar #star-button-box {
+  width: 26px !important;
+  height: 26px !important;
+  padding: 6px !important;
+  margin-block: auto !important;
+  background-color: transparent;
+  transition: background-color .15s var(--nium-ease);
+  &:hover { background-color: light-dark(rgba(23, 48, 42, .08), rgba(233, 241, 237, .08)) !important; }
+  &:hover:active, &[open] { background-color: light-dark(rgba(23, 48, 42, .12), rgba(233, 241, 237, .12)) !important; }
+}
+#urlbar .urlbar-icon,
+#urlbar #star-button {
+  width: 14px !important;
+  height: 14px !important;
+  fill-opacity: .8;
+}
+/* Lateral: realce escuro também nas linhas e no logo */
+.nium-sb-row:hover, .nium-sb-row[open], .nium-icon-button:hover {
+  background-color: light-dark(rgba(23, 48, 42, .07), rgba(233, 241, 237, .07)) !important;
+}
