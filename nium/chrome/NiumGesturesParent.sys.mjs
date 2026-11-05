@@ -16,7 +16,6 @@ export class NiumGesturesParent extends JSWindowActorParent {
     const id = COMMANDS[message.data?.action];
     const browser = this.browsingContext.top?.embedderElement;
     const win = browser?.ownerGlobal;
-    console.log("Nium gestos: ação recebida", message.data?.action, !!win);
     if (!id || !win?.gBrowser || win.gBrowser.selectedBrowser !== browser) return;
     win.document.getElementById(id)?.doCommand();
   }

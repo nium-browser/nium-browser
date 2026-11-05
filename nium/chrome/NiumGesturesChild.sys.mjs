@@ -19,9 +19,6 @@ const BINDINGS = {
   UL: "previousTab",
 };
 
-// Diagnóstico temporário: escreve no Console do navegador (Ctrl+Shift+J) o que o gesto viu.
-const log = (...args) => console.log("Nium gestos:", ...args);
-
 export class NiumGesturesChild extends JSWindowActorChild {
   stroke = null;
   suppressUntil = 0;
@@ -39,9 +36,6 @@ export class NiumGesturesChild extends JSWindowActorChild {
           Services.prefs.getBoolPref("nium.gestures.enabled", false)
         ) {
           this.stroke = { x: event.screenX, y: event.screenY, path: "", invalid: false, start: Date.now() };
-          log("começou", event.screenX, event.screenY);
-        } else if (event.button === 2) {
-          log("clique direito ignorado (gestos desligados ou com Ctrl/Alt/Shift)");
         }
         break;
       case "mousemove":
@@ -51,7 +45,6 @@ export class NiumGesturesChild extends JSWindowActorChild {
         if (event.button === 2 && this.stroke) this.finish(event);
         break;
       case "contextmenu":
-        log("menu", this.stroke ? this.stroke.path || "(sem gesto)" : "(sem traço)");
         // O menu do clique direito some só quando houve um gesto.
         if (Date.now() < this.suppressUntil || this.stroke?.path) {
           event.preventDefault();
@@ -93,7 +86,6 @@ export class NiumGesturesChild extends JSWindowActorChild {
     const action = !s.invalid && BINDINGS[s.path];
     // Mantém o traço até o "contextmenu" (que vem depois do mouseup no Windows).
     setTimeout(() => (this.stroke = null), 0);
-    log("gesto", s.path, s.invalid ? "(inválido)" : "", action || "(sem ação)");
     if (action) this.sendAsyncMessage("Nium:Gesture", { action });
   }
 }
