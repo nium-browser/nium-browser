@@ -1,0 +1,27 @@
+/* Nium: visual do Nium nesta página (o apply.py cola este bloco no fim do CSS dela). MPL-2.0 */
+:root, body {
+  background-color: #0b1316 !important;
+  color: #e9f1ed !important;
+}
+body {
+  background-image:
+    radial-gradient(ellipse 60% 55% at 50% 42%, transparent 0 40%, #0b1316 85%),
+    repeating-radial-gradient(circle at 50% 42%, rgba(150, 196, 194, 0) 0 15px, rgba(150, 196, 194, .07) 16px 17px, rgba(150, 196, 194, 0) 18px 22px) !important;
+  background-attachment: fixed !important;
+}
+h1, .info-title, .title, .showPrivate > h1, .nova-tagline {
+  font-family: "Nium Serif", "Yu Mincho", Georgia, serif !important;
+  font-weight: 300 !important;
+  letter-spacing: -.015em !important;
+}
+.info, .promo, .search-inner-wrapper, .fake-textbox, .search-handoff-button {
+  border-radius: 14px !important;
+}
+.info, .promo {
+  background: rgba(20, 32, 36, .55) !important;
+  border: 1px solid rgba(214, 236, 232, .12) !important;
+  box-shadow: inset 1px 1.5px 1.5px rgba(214, 236, 232, .14), 0 20px 50px -26px #000 !important;
+  backdrop-filter: blur(16px);
+}
+.nova-tagline { font-size: 30px !important; }
+.search-inner-wrapper { box-shadow: inset 1px 1.5px 1.5px rgba(214, 236, 232, .14), 0 14px 34px -18px #000 !important; }

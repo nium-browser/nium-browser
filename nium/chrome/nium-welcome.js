@@ -273,7 +273,14 @@ var NiumWelcome = {
         this.lastHero = this.step;
       }
       const go = el("button", { class: "nw-primary nw-pill", text: this.step === 0 ? t.start : t.finish, onclick: () => this.go(1) });
-      const parts = await (this.step === 0 ? this.step_welcome() : this.step_done());
+      const token = (this.paintToken = (this.paintToken || 0) + 1);
+      let parts = [];
+      try {
+        parts = await (this.step === 0 ? this.step_welcome() : this.step_done());
+      } catch (e) {
+        console.error("Nium: boas-vindas", e);
+      }
+      if (token !== this.paintToken) return;
       this.heroBody.replaceChildren(go, ...parts);
       this.garden?.setLens(this.lens);
       return;
@@ -299,8 +306,18 @@ var NiumWelcome = {
     this.tourList.replaceChildren(...items);
     this.backBtn.textContent = t.back;
     this.nextBtn.textContent = t.next;
+    // Cada pintura tem um número: se outra começou depois (clique rápido), esta desiste.
+    const token = (this.paintToken = (this.paintToken || 0) + 1);
+    let parts;
+    try {
+      parts = await this[`step_${name}`]();
+    } catch (e) {
+      console.error("Nium: boas-vindas, passo", name, e);
+      parts = [el("p", { class: "nw-hint", text: leads[name] || "" })];
+    }
+    if (token !== this.paintToken || this.STEPS[this.step] !== name) return;
     this.body.classList.remove("nw-in-next", "nw-in-back");
-    this.body.replaceChildren(...(await this[`step_${name}`]()));
+    this.body.replaceChildren(...parts);
     void this.body.offsetWidth;
     this.body.classList.add(this.dir < 0 ? "nw-in-back" : "nw-in-next");
   },
@@ -391,27 +408,40 @@ var NiumWelcome = {
   async step_search() {
     const t = this.t;
     const el = NiumSidebar.el.bind(NiumSidebar);
-    const engines = (await Services.search.getVisibleEngines()).slice(0, 6);
-    const current = await Services.search.getDefault();
+    let engines = [];
+    let current = null;
+    try {
+      await Services.search.init?.();
+      engines = (await (Services.search.getVisibleEngines?.() ?? Services.search.getEngines())).filter(e => !e.hidden).slice(0, 6);
+      current = await Services.search.getDefault();
+    } catch (e) {
+      console.error("Nium: lista de buscadores", e);
+    }
     const rows = [];
     for (const engine of engines) {
       let iconURL = "";
       try {
-        iconURL = (await engine.getIconURL()) || "";
+        iconURL = (await engine.getIconURL?.()) || "";
       } catch (e) {}
       const preview = iconURL ? el("img", { class: "nw-engine-icon", src: iconURL, alt: "" }) : el("span", { class: "nw-letter", text: engine.name[0] });
       rows.push(
-        this.choice(engine.name, "", engine.name === current?.name, () =>
-          Services.search.setDefault(engine, Ci.nsISearchService.CHANGE_REASON_USER)
-        , preview)
+        this.choice(engine.name, "", engine.name === current?.name, async () => {
+          try {
+            await Services.search.setDefault(engine, Ci.nsISearchService.CHANGE_REASON_USER);
+          } catch (e) {
+            Services.search.defaultEngine = engine;
+          }
+        }, preview)
       );
     }
     return [
-      ...this.head(t.searchTitle, t.searchText),
+      el("p", { class: "nw-label", text: t.searchTitle }),
       el("div", { class: "nw-list" }, rows),
-      this.toggle(t.suggestHistory, t.suggestHistoryHelp, Services.prefs.getBoolPref("browser.urlbar.suggest.history", true), v =>
-        Services.prefs.setBoolPref("browser.urlbar.suggest.history", v)
-      ),
+      el("div", { class: "nw-switches" }, [
+        this.toggle(t.suggestHistory, t.suggestHistoryHelp, Services.prefs.getBoolPref("browser.urlbar.suggest.history", true), v =>
+          Services.prefs.setBoolPref("browser.urlbar.suggest.history", v)
+        ),
+      ]),
     ];
   },
 

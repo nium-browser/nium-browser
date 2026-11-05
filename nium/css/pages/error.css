@@ -1,0 +1,21 @@
+/* Nium: visual do Nium nesta página (o apply.py cola este bloco no fim do CSS dela). MPL-2.0 */
+:root, body {
+  background-color: light-dark(#e9ede4, #0f181c) !important;
+  color: light-dark(#17302a, #e9f1ed) !important;
+}
+body {
+  background-image:
+    radial-gradient(ellipse 60% 55% at 50% 40%, transparent 0 35%, light-dark(#e9ede4, #0f181c) 85%),
+    repeating-radial-gradient(circle at 50% 40%, transparent 0 15px, light-dark(rgba(23, 48, 42, .07), rgba(150, 196, 194, .07)) 16px 17px, transparent 18px 22px) !important;
+  background-attachment: fixed !important;
+}
+.title-text, h1 {
+  font-family: "Nium Serif", "Yu Mincho", Georgia, serif !important;
+  font-weight: 300 !important;
+}
+.container, .error-page-content, #errorPageContainer {
+  border-radius: 18px !important;
+}
+button {
+  border-radius: 10px !important;
+}

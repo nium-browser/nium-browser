@@ -102,3 +102,6 @@ pref("sidebar.animation.enabled", true);
 pref("browser.tabs.animate", true);
 // A lateral e a barra de cima pegam um toque da cor do site aberto (muda em "Seu Nium")
 pref("nium.tint.enabled", true);
+// Lateral abre e fecha com animação um pouco mais suave
+pref("sidebar.animation.duration-ms", 240);
+pref("sidebar.animation.expand-on-hover.duration-ms", 240);

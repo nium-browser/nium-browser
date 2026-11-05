@@ -134,6 +134,35 @@ def chrome_css():
   say('visual do Nium na janela')
 
 
+# Visual do Nium nas páginas internas: cada bloco é colado no fim do CSS da própria página
+# (configurações, complementos, downloads, janela anônima, páginas de erro).
+PAGE_CSS = (
+  ('browser/themes/shared/preferences/preferences.css', 'settings.css'),
+  ('toolkit/mozapps/extensions/content/aboutaddons.css', 'settings.css'),
+  ('browser/themes/shared/downloads/contentAreaDownloadsView.css', 'settings.css'),
+  ('browser/components/privatebrowsing/content/aboutPrivateBrowsing.css', 'private.css'),
+  ('toolkit/themes/shared/aboutNetError.css', 'error.css'),
+)
+
+
+def page_css():
+  """Visual do Nium nas páginas internas (no CSS de cada uma)."""
+  n = 0
+  for target, name in PAGE_CSS:
+    p = FIREFOX / target
+    if not p.exists():
+      say(f'AVISO: não achei {target}; pulei')
+      continue
+    text = p.read_text(encoding='utf-8')
+    begin = '/* --- Nium: início ---'
+    if begin in text:
+      text = text[:text.index(begin)].rstrip('\n') + '\n'
+    block = (KIT / 'css' / 'pages' / name).read_text(encoding='utf-8').strip('\n')
+    if write_if_changed(p, text + '\n/* --- Nium: início --- */\n' + block + '\n/* --- Nium: fim --- */\n'):
+      n += 1
+  say(f'visual do Nium nas páginas internas ({n} arquivos atualizados)')
+
+
 NEWTAB_JAR = '  builtin-addons/newtab/data/content/nium/ (./data/content/nium/*)\n'
 
 
@@ -237,6 +266,10 @@ LOGO_ICONS = ('browser/themes/shared/sidebar/firefox.svg',
               'browser/themes/shared/icons/window-firefox.svg',
               'browser/themes/shared/preferences/mozilla-logo.svg',
               'browser/themes/shared/preferences/mozilla-16.svg')
+# Ilustrações das páginas de erro (a raposa no buraco e companhia) viram a ilustração do Nium
+ERROR_ART = ('toolkit/themes/shared/illustrations/no-connection.svg',
+             'toolkit/themes/shared/illustrations/security-error.svg',
+             'toolkit/themes/shared/illustrations/error-malformed-url.svg')
 PRIVATE_ICONS = ('browser/themes/shared/privatebrowsing/favicon.svg',
                  'browser/themes/shared/privatebrowsing/pbm-logo.svg',
                  'toolkit/themes/shared/icons/indicator-private-browsing.svg')
@@ -263,7 +296,7 @@ def art():
   private = (ART / 'private-icon.svg').read_bytes()
   n = 0
   files = _mascots()
-  for f in files + list(LOGO_ICONS) + list(PRIVATE_ICONS):
+  for f in files + list(LOGO_ICONS) + list(PRIVATE_ICONS) + list(ERROR_ART):
     p = FIREFOX / f
     if not p.exists():
       continue
@@ -503,7 +536,8 @@ def revert():
                    'browser/themes/shared/browser-shared.css',
                    'browser/extensions/newtab/prerendered/activity-stream.html',
                    'browser/extensions/newtab/addon-jar.mn']
-                  + sorted({r for r, _, _ in PATCHES}) + _mascots() + list(LOGO_ICONS) + list(PRIVATE_ICONS), cwd=FIREFOX)
+                  + sorted({r for r, _, _ in PATCHES}) + _mascots() + list(LOGO_ICONS) + list(PRIVATE_ICONS) + list(ERROR_ART)
+                  + [t for t, _ in PAGE_CSS], cwd=FIREFOX)
   m = FIREFOX / 'mozconfig'
   if m.exists() and 'Nium' in m.read_text(encoding='utf-8'):
     m.unlink()
@@ -528,6 +562,7 @@ def main():
   theme()
   tokens()
   chrome_css()
+  page_css()
   newtab()
   chrome_scripts()
   art()

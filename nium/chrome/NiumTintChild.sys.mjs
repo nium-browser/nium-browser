@@ -24,24 +24,38 @@ function topColor(win, doc) {
   return dark ? "#1c1b22" : "#ffffff";
 }
 
+function pageColor(win, doc) {
+  for (const meta of doc.querySelectorAll('meta[name="theme-color" i]')) {
+    const media = meta.getAttribute("media");
+    if (media && !win.matchMedia(media).matches) continue;
+    if (meta.content) return meta.content;
+  }
+  return topColor(win, doc);
+}
+
 export class NiumTintChild extends JSWindowActorChild {
-  handleEvent() {
-    if (!Services.prefs.getBoolPref("nium.tint.enabled", true)) return;
+  color() {
     const win = this.contentWindow;
     const doc = this.document;
-    if (!win || !doc || this.browsingContext !== this.browsingContext.top) return;
-    let color = null;
+    if (!win || !doc || !doc.documentElement) return null;
     try {
-      for (const meta of doc.querySelectorAll('meta[name="theme-color" i]')) {
-        const media = meta.getAttribute("media");
-        if (media && !win.matchMedia(media).matches) continue;
-        if (meta.content) {
-          color = meta.content;
-          break;
-        }
-      }
-      if (!color) color = topColor(win, doc);
-    } catch (e) {}
-    this.sendAsyncMessage("Nium:Tint", { color: color ? String(color).slice(0, 64) : null });
+      const c = pageColor(win, doc);
+      return c ? String(c).slice(0, 64) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // A janela pergunta (ao trocar de aba e ao terminar de carregar)
+  receiveMessage(message) {
+    if (message.name === "Nium:GetTint") return this.color();
+    return null;
+  }
+
+  // A página avisa sozinha quando abre
+  handleEvent() {
+    if (!Services.prefs.getBoolPref("nium.tint.enabled", true)) return;
+    if (this.browsingContext !== this.browsingContext.top) return;
+    this.sendAsyncMessage("Nium:Tint", { color: this.color() });
   }
 }

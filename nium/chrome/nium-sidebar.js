@@ -194,7 +194,6 @@ var NiumSidebar = {
     } catch (e) {
       console.error("Nium: Nium AI", e);
     }
-    this.registerContentStyle();
     try {
       Services.scriptloader.loadSubScript("chrome://browser/content/nium/nium-welcome.js", window);
       window.NiumWelcome.maybeShow();
@@ -314,31 +313,73 @@ var NiumSidebar = {
     if (browser === gBrowser.selectedBrowser) this.applyTint(color);
   },
 
+  // Converte qualquer cor CSS (nome, #hex, rgb, hsl) em rgb() usando um canvas da janela.
+  parseColor(color) {
+    try {
+      if (!this._colorCtx) this._colorCtx = document.createElementNS(this.HTML, "canvas").getContext("2d");
+      const ctx = this._colorCtx;
+      ctx.fillStyle = "#010203";
+      ctx.fillStyle = String(color);
+      const v = ctx.fillStyle;
+      if (v === "#010203" && !/^#?010203$/i.test(String(color).trim())) return null; // cor inválida
+      if (v.startsWith("#")) {
+        const n = parseInt(v.slice(1), 16);
+        return `rgb(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255})`;
+      }
+      const m = v.match(/rgba?\(([^)]+)\)/);
+      if (!m) return null;
+      const [r, g, b, a = "1"] = m[1].split(",").map(x => x.trim());
+      if (parseFloat(a) < 0.5) return null;
+      return `rgb(${r}, ${g}, ${b})`;
+    } catch (e) {
+      return null;
+    }
+  },
+
   applyTint(color) {
     const root = document.documentElement;
     const on = Services.prefs.getBoolPref("nium.tint.enabled", true) && !PrivateBrowsingUtils.isWindowPrivate(window);
     root.toggleAttribute("nium-tint", on);
-    let rgb = null;
-    if (on && color) {
-      try {
-        const c = InspectorUtils.colorToRGBA(color);
-        if (c && c.a > 0.5) rgb = `rgb(${Math.round(c.r)}, ${Math.round(c.g)}, ${Math.round(c.b)})`;
-      } catch (e) {}
-    }
+    const rgb = on && color ? this.parseColor(color) : null;
     if (rgb) root.style.setProperty("--nium-tint", rgb);
     else root.style.removeProperty("--nium-tint");
   },
 
+  // Pergunta a cor à página da aba atual (não depende só do aviso da página).
+  async askTint(browser = gBrowser.selectedBrowser) {
+    try {
+      const spec = browser.currentURI?.spec || "";
+      if (!/^https?:/.test(spec)) {
+        this.tints.delete(browser);
+        if (browser === gBrowser.selectedBrowser) this.applyTint(null);
+        return;
+      }
+      const actor = browser.browsingContext?.currentWindowGlobal?.getActor("NiumTint");
+      const color = await actor?.sendQuery("Nium:GetTint");
+      if (color !== undefined) this.setTint(browser, color ?? null);
+    } catch (e) {}
+  },
+
   watchTint() {
-    const current = () => this.applyTint(this.tints.get(gBrowser.selectedBrowser) ?? null);
+    const current = () => {
+      this.applyTint(this.tints.get(gBrowser.selectedBrowser) ?? null);
+      this.askTint();
+    };
     gBrowser.tabContainer.addEventListener("TabSelect", current);
-    // Ao sair de um site para uma página do Nium (nova aba, configurações), volta às cores do Nium.
+    // Ao trocar de página: páginas do Nium voltam às cores do Nium; sites são perguntados
+    // quando terminam de carregar.
+    const WPL = Ci.nsIWebProgressListener;
     this._tintListener = {
       onLocationChange: (webProgress, request, location, flags) => {
-        if (!webProgress?.isTopLevel || flags & Ci.nsIWebProgressListener.LOCATION_CHANGE_SAME_DOCUMENT) return;
+        if (!webProgress?.isTopLevel || flags & WPL.LOCATION_CHANGE_SAME_DOCUMENT) return;
         if (!/^https?:/.test(location?.spec || "")) {
           this.tints.delete(gBrowser.selectedBrowser);
           this.applyTint(null);
+        }
+      },
+      onStateChange: (webProgress, request, flags) => {
+        if (webProgress?.isTopLevel && flags & WPL.STATE_STOP && flags & WPL.STATE_IS_NETWORK) {
+          setTimeout(() => this.askTint(), 150);
         }
       },
       QueryInterface: ChromeUtils.generateQI(["nsIWebProgressListener", "nsISupportsWeakReference"]),
@@ -365,36 +406,62 @@ var NiumSidebar = {
       btn("nium-zoom-in", "+", t.zoomIn, () => FullZoom.enlarge()),
       btn("nium-zoom-reset", t.zoomReset, t.zoomReset, () => FullZoom.reset()),
     ]);
-    box.append(chip);
+    document.documentElement.append(chip);
     let last = null;
-    const update = () => {
+    let hideTimer = null;
+    // Preso ao canto de cima, à direita, da página (calculado a partir da área da página)
+    const place = () => {
+      const r = box.getBoundingClientRect();
+      chip.style.top = `${Math.round(r.top + 10)}px`;
+      chip.style.left = "auto";
+      chip.style.right = `${Math.round(window.innerWidth - r.right + 14)}px`;
+    };
+    const hideLater = () => {
+      clearTimeout(hideTimer);
+      hideTimer = setTimeout(() => {
+        if (chip.matches(":hover")) return hideLater();
+        chip.classList.add("nium-zoom-out-anim");
+        setTimeout(() => {
+          chip.setAttribute("hidden", "true");
+          chip.classList.remove("nium-zoom-out-anim");
+        }, 220);
+      }, 4000);
+    };
+    const update = (changed = true) => {
       let z = 1;
       try {
         z = ZoomManager.getZoomForBrowser(gBrowser.selectedBrowser);
       } catch (e) {}
       const pct = Math.round(z * 100);
       label.textContent = `${pct}%`;
-      const show = pct !== 100;
-      if (show) chip.removeAttribute("hidden");
-      else chip.setAttribute("hidden", "true");
-      if (show && last !== null && last !== pct) {
+      // Aparece só quando o zoom MUDA (e não está em 100%); some sozinho depois de 4 segundos.
+      if (pct === 100 || !changed || last === pct) {
+        if (pct === 100) chip.setAttribute("hidden", "true");
+        last = pct;
+        return;
+      }
+      place();
+      const wasHidden = chip.hasAttribute("hidden");
+      chip.removeAttribute("hidden");
+      chip.classList.remove("nium-zoom-out-anim");
+      if (!wasHidden) {
         chip.classList.remove("nium-zoom-bump");
         void chip.offsetWidth;
         chip.classList.add("nium-zoom-bump");
       }
       last = pct;
+      hideLater();
     };
-    window.addEventListener("FullZoomChange", update);
-    window.addEventListener("TextZoomChange", update);
+    chip.addEventListener("mouseleave", hideLater);
+    window.addEventListener("resize", () => !chip.hasAttribute("hidden") && place());
+    window.addEventListener("FullZoomChange", () => update(true));
+    window.addEventListener("TextZoomChange", () => update(true));
+    // Ao trocar de aba, só guarda o valor (sem mostrar o selo)
     gBrowser.tabContainer.addEventListener("TabSelect", () => {
-      last = null;
-      update();
+      chip.setAttribute("hidden", "true");
+      update(false);
     });
-    gBrowser.addProgressListener((this._zoomListener = {
-      onLocationChange: () => setTimeout(update, 50),
-      QueryInterface: ChromeUtils.generateQI(["nsIWebProgressListener", "nsISupportsWeakReference"]),
-    }));
-    update();
+    update(false);
   },
 
   // ---- Início: uma aba que SEMPRE existe, fixada e separada das outras ----
@@ -489,6 +556,11 @@ var NiumSidebar = {
 
   watchTabClose() {
     const container = gBrowser.tabContainer;
+    container.addEventListener("TabOpen", event => {
+      const tab = event.target;
+      tab.setAttribute("nium-new", "true");
+      setTimeout(() => tab.removeAttribute("nium-new"), 500);
+    });
     container.addEventListener("TabClose", event => {
       try {
         if (!container.verticalMode || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -545,18 +617,6 @@ var NiumSidebar = {
   },
 
   // ---- ajudantes de DOM ----
-  // Visual do Nium nas páginas internas (configurações, complementos, anônima, erros): uma folha
-  // de estilo do navegador, registrada uma vez para todas as janelas e abas.
-  registerContentStyle() {
-    try {
-      const sss = Cc["@mozilla.org/content/style-sheet-service;1"].getService(Ci.nsIStyleSheetService);
-      const uri = Services.io.newURI("chrome://browser/content/nium/nium-content.css");
-      if (!sss.sheetRegistered(uri, sss.AGENT_SHEET)) sss.loadAndRegisterSheet(uri, sss.AGENT_SHEET);
-    } catch (e) {
-      console.error("Nium: estilo das páginas internas", e);
-    }
-  },
-
   el(tag, props = {}, children = []) {
     const node = document.createElementNS(this.HTML, tag);
     for (const [key, value] of Object.entries(props)) {
@@ -782,7 +842,19 @@ var NiumSidebar = {
 
   closePanel() {
     if (!this.panel) return;
-    this.panel.hidden = true;
+    // Sai deslizando para a direita antes de sumir
+    if (!this.panel.hidden && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      const panel = this.panel;
+      const anim = panel.animate(
+        [{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateX(12px)" }],
+        { duration: 180, easing: "cubic-bezier(.4, 0, 1, 1)" }
+      );
+      anim.finished.then(() => {
+        if (!this.openPanelName) panel.hidden = true;
+      }, () => {});
+    } else {
+      this.panel.hidden = true;
+    }
     this.panelWasClosed = true;
     this.panel.removeAttribute("wide");
     this.openPanelName = null;

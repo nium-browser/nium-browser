@@ -1213,8 +1213,10 @@ tooltip {
 
 /* ---- Lateral: abas com movimento suave ---- */
 #tabbrowser-tabs[orient="vertical"] {
-  /* Aba nova entra deslizando (o arrastar fica com as animações do próprio Firefox) */
-  .tabbrowser-tab[fadein]:not([pinned]) > .tab-stack {
+  /* Aba nova entra deslizando: só na hora em que abre (nium-sidebar.js marca nium-new por
+     meio segundo). Antes usava [fadein], que fica para sempre e repetia a animação ao soltar
+     uma aba arrastada (o "pulo"). */
+  .tabbrowser-tab[nium-new]:not([pinned]) > .tab-stack {
     animation: nium-tab-in .24s var(--nium-ease);
   }
   .tab-background {
@@ -1438,12 +1440,9 @@ sidebar-main:not([expanded]) .tabbrowser-tab .tab-content { position: relative; 
 /* ---- Zoom fora da barra: o "80%" sai da barra de endereço e vira um selo de vidro no
    canto de cima da página; com o mouse em cima abre − / + / Redefinir ---- */
 #urlbar-zoom-button { display: none !important; }
-#tabbrowser-tabbox { position: relative; }
 #nium-zoom {
-  position: absolute;
-  top: 10px;
-  inset-inline-end: 14px;
-  z-index: 5;
+  position: fixed;
+  z-index: 10;
   display: flex;
   align-items: center;
   gap: 2px;
@@ -1482,6 +1481,8 @@ sidebar-main:not([expanded]) .tabbrowser-tab .tab-content { position: relative; 
   .nium-zoom-reset { margin-inline-start: 4px; font-size: 11.5px; }
 }
 @keyframes nium-zoom-in { from { opacity: 0; transform: translateY(-6px) scale(.94); } }
+#nium-zoom.nium-zoom-out-anim { animation: nium-zoom-leave .22s var(--nium-ease, ease) forwards; }
+@keyframes nium-zoom-leave { to { opacity: 0; transform: translateY(-4px) scale(.96); } }
 @keyframes nium-zoom-bump { 40% { transform: scale(1.08); } }
 
 /* ---- Nome "nium." aparece ao abrir a lateral (Ctrl+B): desliza e se revela ---- */
@@ -1541,4 +1542,39 @@ sidebar-main[expanded] .nium-wordmark {
 /* Sem abas fixadas além do Início (que fica escondido), a área das fixadas some */
 #pinned-tabs-container:not(:has(> .tabbrowser-tab:not([nium-home]))) {
   display: none !important;
+}
+
+/* Casinha do Início um pouco maior que os outros ícones */
+.nium-home-row > .nium-sb-icon { width: 18px; height: 18px; }
+
+/* ---- Mais animações suaves (rodada 4) ---- */
+/* Sugestões da barra de endereço descem suavemente */
+#urlbar[open] .urlbarView-body-outer {
+  animation: nium-drop .2s var(--nium-ease) both;
+}
+@keyframes nium-drop { from { opacity: 0; transform: translateY(-4px); } }
+/* Trocar de aba: a página aparece com um esmaecer rápido */
+#tabbrowser-tabpanels > .deck-selected {
+  animation: nium-content-in .18s ease-out;
+}
+@keyframes nium-content-in { from { opacity: .55; } }
+/* Abas: o fundo da aba ativa e do hover muda suavemente */
+.tabbrowser-tab .tab-background,
+.tabbrowser-tab .tab-label,
+.tabbrowser-tab .tab-icon-image {
+  transition: background-color .18s var(--nium-ease), box-shadow .2s var(--nium-ease), color .18s var(--nium-ease), opacity .18s var(--nium-ease) !important;
+}
+/* Barra de favoritos e barra de busca na página entram suavemente */
+#PersonalToolbar:not([collapsed="true"]) { animation: nium-fade-down .22s var(--nium-ease); }
+findbar:not([hidden]) { animation: nium-fade-up .22s var(--nium-ease); }
+@keyframes nium-fade-down { from { opacity: 0; transform: translateY(-4px); } }
+/* Menus do Nium (espaços, leitura…) e linhas da lateral */
+.nium-sb-row > .nium-sb-icon { transition: transform .2s var(--nium-spring); }
+.nium-sb-row:hover > .nium-sb-icon { transform: scale(1.08); }
+/* Estrela de favoritar: um pulinho ao favoritar */
+#star-button[starred] { animation: nium-pop .3s var(--nium-spring); }
+/* Selo do Shield acende suavemente */
+.nium-shield-dot { transition: background-color .3s var(--nium-ease), box-shadow .3s var(--nium-ease); }
+@media (prefers-reduced-motion: reduce) {
+  #urlbar[open] .urlbarView-body-outer, #tabbrowser-tabpanels > .deck-selected, #PersonalToolbar, findbar, #star-button[starred] { animation: none !important; }
 }
