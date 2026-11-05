@@ -127,9 +127,11 @@
   width: 22px;
   height: 22px;
   flex: none;
-  border-radius: 6px;
-  background: var(--toolbox-text-color, currentColor);
-  > svg { width: 14px; height: 14px; fill: none; stroke: var(--toolbar-bgcolor, #1f1f22); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+  border-radius: 7px;
+  /* O ícone do site: verde em degradê com o N claro (não depende da cor da barra) */
+  background: linear-gradient(135deg, #789681, #305344);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22);
+  > svg { width: 13px; height: 13px; fill: none; stroke: #e4f1e7; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
 }
 .nium-wordmark {
   font: 700 18px/1 "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
@@ -210,7 +212,7 @@
   margin-inline-start: -2px;
   border-radius: 50%;
   background: var(--toolbox-text-color, currentColor);
-  color: var(--toolbar-bgcolor, #1f1f22);
+  color: light-dark(#e9ede4, #0f181c);
   font-size: 11px;
   font-weight: 700;
 }

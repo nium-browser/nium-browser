@@ -1,6 +1,6 @@
 /* Nium: a areia com ondas do site do Nium, desenhada ao vivo (mesma receita do site). MPL-2.0
  *
- * NiumGarden.mount(host, { lens }) põe um <canvas class="nium-sand"> no começo de `host` e desenha
+ * NiumGarden.mount(host, { lens, center: [x, y] }) põe um <canvas class="nium-sand"> no começo de `host` e desenha
  * as ondas se movendo, como em niumbrowser.web.app. Sob a lente (opcional) a areia fica mais suave,
  * como vidro fosco. Se o computador não aguentar (ou o movimento estiver reduzido no sistema), não
  * desenha nada e fica a imagem parada que o CSS já mostra. Usado na nova aba e nas boas-vindas.
@@ -99,8 +99,8 @@ void main(){
       gl.uniform2f(U("uRes"), canvas.width, canvas.height);
       gl.uniform1f(U("uScale"), s * q);
       // O centro das ondas fica no meio da lente (ou no meio da tela, sem lente).
-      let cx = 0.5;
-      let cy = opts.centerY ?? 0.5;
+      let cx = opts.center?.[0] ?? 0.5;
+      let cy = opts.center?.[1] ?? 0.5;
       let r = 0;
       if (lens && lens.isConnected && lens.offsetWidth) {
         const hb = host.getBoundingClientRect();

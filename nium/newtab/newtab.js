@@ -53,7 +53,7 @@
   }
   // A areia com ondas, viva como no site (se o computador aguentar).
   try {
-    if (window.NiumGarden) NiumGarden.mount($("#garden"), { lens: $("#lens") });
+    if (window.NiumGarden) NiumGarden.mount($("#garden"), { center: [0.86, 0.9] }); // ondas saindo do canto inferior direito
   } catch (e) {
     console.warn("Nium: ondas", e);
   }
