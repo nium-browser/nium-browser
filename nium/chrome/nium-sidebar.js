@@ -572,7 +572,8 @@ var NiumSidebar = {
         allFrames: true,
       });
     } catch (e) {
-      // Já registrado por outra janela.
+      // "NotSupportedError" = já registrado por outra janela; qualquer outro erro aparece no console.
+      if (e.name !== "NotSupportedError") console.error("Nium: registro de ator", e);
     }
     try {
       ChromeUtils.registerWindowActor("NiumGestures", {
@@ -591,7 +592,8 @@ var NiumSidebar = {
         allFrames: true,
       });
     } catch (e) {
-      // Já registrado por outra janela.
+      // "NotSupportedError" = já registrado por outra janela; qualquer outro erro aparece no console.
+      if (e.name !== "NotSupportedError") console.error("Nium: registro de ator", e);
     }
   },
 
