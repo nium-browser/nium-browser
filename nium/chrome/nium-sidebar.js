@@ -42,6 +42,24 @@ var NiumSidebar = {
       openSettings: "All settings",
       openShortcuts: "Keyboard shortcuts",
       openAddons: "Extensions and themes",
+      gesturesLabel: "Mouse gestures",
+      gesturesHelp: "Hold the right button, drag and release: ← back, → forward, ↑ new tab, ↓ reload, ↓→ close tab, ↑→ next tab, ↑← previous tab.",
+      readingList: "Reading list",
+      readingIntro: "Pages saved to read later. Saved only on this device.",
+      readingSave: "Save this page",
+      readingSaved: "This page is already in the list.",
+      readingNoPage: "Open a website to save it here.",
+      readingFull: "Limit of 500 pages in the reading list.",
+      readingSearch: "Search the list",
+      readingAll: "All",
+      readingUnread: "To read",
+      readingRead: "Read",
+      readingEmptyTitle: "Nothing to read later yet.",
+      readingEmptyText: "Open an article you want to finish later and save it here.",
+      readingNone: "Nothing here with this filter.",
+      markRead: "Mark as read",
+      markUnread: "Mark as unread",
+      removeItem: "Remove from list",
       shrink: "Back to the side",
       close: "Close",
       spacesIntro: "A set of tabs for each project. Saved only on this device.",
@@ -88,6 +106,24 @@ var NiumSidebar = {
       openSettings: "Todas as configurações",
       openShortcuts: "Atalhos de teclado",
       openAddons: "Extensões e temas",
+      gesturesLabel: "Gestos do mouse",
+      gesturesHelp: "Segure o botão direito, arraste e solte: ← voltar, → avançar, ↑ nova aba, ↓ recarregar, ↓→ fechar aba, ↑→ próxima aba, ↑← aba anterior.",
+      readingList: "Lista de leitura",
+      readingIntro: "Páginas guardadas para ler depois. Salvo só neste dispositivo.",
+      readingSave: "Salvar esta página",
+      readingSaved: "Esta página já está na lista.",
+      readingNoPage: "Abra um site para salvar aqui.",
+      readingFull: "Limite de 500 páginas na lista de leitura.",
+      readingSearch: "Buscar na lista",
+      readingAll: "Todas",
+      readingUnread: "Para ler",
+      readingRead: "Lidas",
+      readingEmptyTitle: "Nada para ler depois ainda.",
+      readingEmptyText: "Abra um artigo que você quer terminar depois e salve aqui.",
+      readingNone: "Nada aqui com este filtro.",
+      markRead: "Marcar como lida",
+      markUnread: "Marcar como não lida",
+      removeItem: "Tirar da lista",
       shrink: "Voltar para o lado",
       close: "Fechar",
       spacesIntro: "Um conjunto de abas para cada projeto. Salvo só neste dispositivo.",
@@ -358,7 +394,12 @@ var NiumSidebar = {
       [this.icon("chrome://global/skin/icons/edit-outline.svg"), this.el("span", { class: "nium-sb-text", text: t.notes })]
     );
     this.notesButton = notes;
-    return this.el("div", { id: "nium-sidebar-bottom", class: "nium-sb-block" }, [notes, shield, you]);
+    const reading = (this.readingButton = this.el(
+      "button",
+      { class: "nium-sb-row", title: t.readingList, onclick: () => this.togglePanel("reading") },
+      [this.icon("chrome://browser/skin/reader-mode.svg"), this.el("span", { class: "nium-sb-text", text: t.readingList })]
+    ));
+    return this.el("div", { id: "nium-sidebar-bottom", class: "nium-sb-block" }, [reading, notes, shield, you]);
   },
 
   // Nium Shield = uBlock Origin. O botão abre o painel do uBlock; sem ele, o painel de
@@ -431,6 +472,7 @@ var NiumSidebar = {
     this.spacesButton?.toggleAttribute("open", name === "spaces");
     this.notesButton?.toggleAttribute("open", name === "notes");
     this.youButton?.toggleAttribute("open", name === "you");
+    this.readingButton?.toggleAttribute("open", name === "reading");
     this.openFullButton.hidden = name !== "notes";
     if (this.notesFrame && name !== "notes") this.notesFrame.hidden = true;
     if (name !== "notes") this.panel.removeAttribute("wide");
@@ -439,6 +481,10 @@ var NiumSidebar = {
       this.panelIcon.src = "chrome://global/skin/icons/folder.svg";
       this.panelTitle.textContent = this.t.mySpaces;
       this.renderSpaces();
+    } else if (name === "reading") {
+      this.panelIcon.src = "chrome://browser/skin/reader-mode.svg";
+      this.panelTitle.textContent = this.t.readingList;
+      this.renderReading();
     } else if (name === "you") {
       this.panelIcon.src = "chrome://global/skin/icons/settings.svg";
       this.panelTitle.textContent = this.t.youTitle;
@@ -460,6 +506,7 @@ var NiumSidebar = {
     this.spacesButton?.removeAttribute("open");
     this.notesButton?.removeAttribute("open");
     this.youButton?.removeAttribute("open");
+    this.readingButton?.removeAttribute("open");
   },
 
   // ---- anotações: o Nium Notes (Nium Core) no painel ----
@@ -522,6 +569,25 @@ var NiumSidebar = {
           events: { copy: { capture: true } },
         },
         matches: ["http://*/*", "https://*/*"],
+        allFrames: true,
+      });
+    } catch (e) {
+      // Já registrado por outra janela.
+    }
+    try {
+      ChromeUtils.registerWindowActor("NiumGestures", {
+        parent: { esModuleURI: "chrome://browser/content/nium/NiumGesturesParent.sys.mjs" },
+        child: {
+          esModuleURI: "chrome://browser/content/nium/NiumGesturesChild.sys.mjs",
+          events: {
+            mousedown: { capture: true, mozSystemGroup: true },
+            mousemove: { capture: true, mozSystemGroup: true },
+            mouseup: { capture: true, mozSystemGroup: true },
+            contextmenu: { capture: true },
+            keydown: { capture: true, mozSystemGroup: true },
+          },
+        },
+        matches: ["http://*/*", "https://*/*", "file:///*", "about:newtab", "about:home"],
         allFrames: true,
       });
     } catch (e) {
@@ -596,6 +662,9 @@ var NiumSidebar = {
     styleRow.hidden = !prefs.getBoolPref("nium.copy.cite", false);
     body.append(styleRow);
 
+    toggle(t.gesturesLabel, t.gesturesHelp, prefs.getBoolPref("nium.gestures.enabled", false), v =>
+      prefs.setBoolPref("nium.gestures.enabled", v)
+    );
     toggle(t.restoreLabel, "", prefs.getIntPref("browser.startup.page", 1) === 3, v =>
       prefs.setIntPref("browser.startup.page", v ? 3 : 1)
     );
@@ -611,6 +680,168 @@ var NiumSidebar = {
       link(t.openShortcuts, "chrome://global/skin/icons/search-glass.svg", () => openTrustedLinkIn("about:keyboard", "tab")),
       link(t.openAddons, "chrome://mozapps/skin/extensions/extension.svg", () => BrowserAddonUI.openAddonsMgr("addons://list/extension"))
     );
+  },
+
+  // ---- lista de leitura (como no Nium Electron) ----
+  READING_FILE: "nium-reading.json",
+  READING_LIMIT: 500,
+  readingFilter: "all",
+  readingQuery: "",
+
+  get readingPath() {
+    return PathUtils.join(PathUtils.profileDir, this.READING_FILE);
+  },
+
+  webURL(spec) {
+    try {
+      const u = new URL(spec);
+      return ["http:", "https:"].includes(u.protocol) && !u.username && !u.password && u.href.length <= 8192 ? u.href : null;
+    } catch (e) {
+      return null;
+    }
+  },
+
+  async readReading() {
+    try {
+      const data = await IOUtils.readJSON(this.readingPath);
+      const seen = new Set();
+      return (Array.isArray(data) ? data : []).filter(item => {
+        const url = this.webURL(item?.url);
+        if (!url || typeof item.id !== "string" || seen.has(url)) return false;
+        seen.add(url);
+        return true;
+      });
+    } catch (e) {
+      return [];
+    }
+  },
+
+  async writeReading(list) {
+    await IOUtils.writeJSON(this.readingPath, list.slice(0, this.READING_LIMIT), { tmpPath: this.readingPath + ".tmp" });
+    for (const win of Services.wm.getEnumerator("navigator:browser")) {
+      if (win !== window && win.NiumSidebar?.openPanelName === "reading") win.NiumSidebar.renderReading();
+    }
+  },
+
+  async saveForLater() {
+    const t = this.t;
+    const browser = gBrowser.selectedBrowser;
+    const url = this.webURL(browser.currentURI?.spec);
+    if (!url) return this.renderReading(t.readingNoPage);
+    const list = await this.readReading();
+    if (list.some(item => item.url === url)) return this.renderReading(t.readingSaved);
+    if (list.length >= this.READING_LIMIT) return this.renderReading(t.readingFull);
+    const title = String(gBrowser.selectedTab.label || url).replace(/\s+/g, " ").slice(0, 200);
+    list.unshift({ id: Services.uuid.generateUUID().toString(), url, title, read: false, createdAt: new Date().toISOString() });
+    await this.writeReading(list);
+    this.renderReading();
+  },
+
+  async renderReading(message = "") {
+    const t = this.t;
+    const all = await this.readReading();
+    const body = this.panelBody;
+    body.textContent = "";
+    body.append(this.el("p", { class: "nium-panel-description", text: t.readingIntro }));
+    const save = this.el("button", { class: "nium-primary-button", onclick: () => this.saveForLater() }, [
+      this.icon("chrome://global/skin/icons/plus.svg"),
+      this.el("span", { text: t.readingSave }),
+    ]);
+    if (!this.webURL(gBrowser.selectedBrowser.currentURI?.spec)) save.disabled = true;
+    body.append(save);
+    if (message) body.append(this.el("p", { class: "nium-panel-message", role: "alert", text: message }));
+    if (!all.length) {
+      body.append(
+        this.el("div", { class: "nium-empty-state" }, [
+          this.el("span", { class: "nium-empty-icon" }, [this.icon("chrome://browser/skin/reader-mode.svg")]),
+          this.el("h3", { text: t.readingEmptyTitle }),
+          this.el("p", { text: t.readingEmptyText }),
+        ])
+      );
+      return;
+    }
+
+    // Busca e filtro
+    const norm = text => String(text).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    const search = this.el("input", { class: "nium-input nium-reading-search", type: "search", placeholder: t.readingSearch, "aria-label": t.readingSearch });
+    search.value = this.readingQuery;
+    const tabs = this.el("div", { class: "nium-segmented", role: "tablist" });
+    const counts = { all: all.length, unread: all.filter(i => !i.read).length, read: all.filter(i => i.read).length };
+    for (const [key, label] of [["all", t.readingAll], ["unread", t.readingUnread], ["read", t.readingRead]]) {
+      tabs.append(
+        this.el(
+          "button",
+          { role: "tab", "aria-selected": String(this.readingFilter === key), onclick: () => { this.readingFilter = key; this.renderReading(); } },
+          [this.el("span", { text: label }), this.el("span", { class: "nium-count", text: String(counts[key]) })]
+        )
+      );
+    }
+    const listBox = this.el("div", { class: "nium-reading-list" });
+    const fill = () => {
+      listBox.textContent = "";
+      const q = norm(this.readingQuery);
+      const rows = all.filter(
+        item =>
+          (this.readingFilter === "all" || item.read === (this.readingFilter === "read")) &&
+          norm(item.title + " " + item.url).includes(q)
+      );
+      if (!rows.length) {
+        listBox.append(this.el("p", { class: "nium-panel-message", text: t.readingNone }));
+        return;
+      }
+      for (const item of rows) listBox.append(this.readingRow(item));
+    };
+    search.addEventListener("input", () => {
+      this.readingQuery = search.value;
+      fill();
+    });
+    body.append(this.el("div", { class: "nium-reading-tools" }, [search, tabs]), listBox);
+    fill();
+  },
+
+  readingRow(item) {
+    const t = this.t;
+    let host = "";
+    try {
+      host = new URL(item.url).hostname.replace(/^www\./, "");
+    } catch (e) {}
+    const update = async change => {
+      const list = await this.readReading();
+      const index = list.findIndex(x => x.id === item.id);
+      if (index < 0) return;
+      if (change === "remove") list.splice(index, 1);
+      else list[index].read = !list[index].read;
+      await this.writeReading(list);
+      this.renderReading();
+    };
+    const open = this.el(
+      "button",
+      {
+        class: "nium-reading-open",
+        title: item.url,
+        onclick: e => {
+          openTrustedLinkIn(item.url, e.ctrlKey || e.button === 1 ? "tabshifted" : "tab");
+        },
+      },
+      [
+        this.el("img", { class: "nium-reading-favicon", src: "page-icon:" + item.url, alt: "" }),
+        this.el("span", { class: "nium-reading-text" }, [
+          this.el("strong", { text: item.title }),
+          this.el("span", { text: host }),
+        ]),
+      ]
+    );
+    return this.el("article", { class: "nium-reading-item", read: item.read ? "true" : "false" }, [
+      open,
+      this.el("span", { class: "nium-card-actions" }, [
+        this.el("button", { class: "nium-icon-button", title: item.read ? t.markUnread : t.markRead, onclick: () => update("read") }, [
+          this.icon(item.read ? "chrome://global/skin/icons/undo.svg" : "chrome://global/skin/icons/check.svg"),
+        ]),
+        this.el("button", { class: "nium-icon-button", title: t.removeItem, onclick: () => update("remove") }, [
+          this.icon("chrome://global/skin/icons/delete.svg"),
+        ]),
+      ]),
+    ]);
   },
 
   // ---- espaços: conjuntos de abas guardados ----

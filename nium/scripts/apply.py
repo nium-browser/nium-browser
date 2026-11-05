@@ -316,14 +316,18 @@ PATCHES = [
   ('browser/base/jar.mn',
    ('        content/browser/browser-main.js                     (content/browser-main.js)\n'
     '        content/browser/nium/nium-sidebar.js                (content/nium/nium-sidebar.js)\n'
+    '        content/browser/nium/NiumCiteChild.sys.mjs          (content/nium/NiumCiteChild.sys.mjs)\n'
+    '        content/browser/nium/core/notes/                    (content/nium/core/notes/*)\n'
+    '        content/browser/nium/core/shared/                   (content/nium/core/shared/*)\n',
+    '        content/browser/browser-main.js                     (content/browser-main.js)\n'
+    '        content/browser/nium/nium-sidebar.js                (content/nium/nium-sidebar.js)\n'
     '        content/browser/nium/core/notes/                    (content/nium/core/notes/*)\n'
     '        content/browser/nium/core/shared/                   (content/nium/core/shared/*)\n',
     '        content/browser/browser-main.js                     (content/browser-main.js)\n'
     '        content/browser/nium/nium-sidebar.js                (content/nium/nium-sidebar.js)\n',
     '        content/browser/browser-main.js                     (content/browser-main.js)\n'),
    '        content/browser/browser-main.js                     (content/browser-main.js)\n'
-   '        content/browser/nium/nium-sidebar.js                (content/nium/nium-sidebar.js)\n'
-   '        content/browser/nium/NiumCiteChild.sys.mjs          (content/nium/NiumCiteChild.sys.mjs)\n'
+   '        content/browser/nium/                               (content/nium/*)\n'
    '        content/browser/nium/core/notes/                    (content/nium/core/notes/*)\n'
    '        content/browser/nium/core/shared/                   (content/nium/core/shared/*)\n'),
   ('browser/base/content/browser.xhtml',

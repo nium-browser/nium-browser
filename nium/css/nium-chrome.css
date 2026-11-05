@@ -552,4 +552,62 @@ panel {
   background: transparent;
   &:hover { background: var(--nium-hover); }
 }
+/* Lista de leitura */
+.nium-reading-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 18px 0 12px;
+}
+.nium-reading-search { width: 100%; box-sizing: border-box; }
+.nium-segmented {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 9px;
+  background: var(--nium-hover);
+
+  > button {
+    flex: 1;
+    height: 28px;
+    border-radius: 7px;
+    background: transparent;
+    font-size: 12.5px;
+    &[aria-selected="true"] { background: var(--nium-surface); box-shadow: 0 1px 2px rgba(0,0,0,.18); font-weight: 600; }
+  }
+  .nium-count { opacity: .6; font-weight: 400; }
+}
+.nium-reading-list { display: flex; flex-direction: column; gap: 6px; }
+.nium-reading-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid var(--nium-line);
+  background: var(--nium-surface-2);
+
+  &[read="true"] .nium-reading-text strong { font-weight: 500; opacity: .6; }
+}
+.nium-reading-open {
+  flex: 1;
+  min-width: 0;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: transparent;
+  text-align: start;
+  &:hover { background: var(--nium-hover); }
+}
+.nium-reading-favicon { width: 16px; height: 16px; flex: none; border-radius: 3px; }
+.nium-reading-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+  > strong, > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  > strong { font-weight: 600; }
+  > span { font-size: 12px; color: var(--nium-muted); }
+}
 /* --- Nium: fim --- */
