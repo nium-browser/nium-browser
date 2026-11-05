@@ -183,8 +183,8 @@ var gNiumPane = {
     this.label();
     const root = document.createElement("div");
     root.id = "niumPane";
+    // Sem "data-hidden-from-search": com ele, a troca de página do Firefox esconde este bloco.
     root.setAttribute("data-category", "paneNium");
-    root.setAttribute("data-hidden-from-search", "true");
     root.hidden = true;
     document.getElementById("mainPrefPane").append(root);
     this.root = root;
