@@ -173,6 +173,7 @@ var NiumSidebar = {
     this.buildPanel();
     this.watchLayout();
     this.watchLoading();
+    this.watchTabClose();
     this.takeOverSearchKey();
     this.registerActors();
     this.createSplitButton();
@@ -290,6 +291,52 @@ var NiumSidebar = {
   },
 
   // Marca a caixa de endereço enquanto a aba atual carrega (a linha que gira é CSS).
+  // Fechar aba na lateral com animação: a aba some deslizando e as de baixo sobem suavemente.
+  // (O Firefox só anima o fechar nas abas em cima; na lateral a aba sumia de uma vez.)
+  watchTabClose() {
+    const container = gBrowser.tabContainer;
+    container.addEventListener("TabClose", event => {
+      try {
+        if (!container.verticalMode || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        const tab = event.target;
+        if (tab.pinned || !tab.isConnected) return;
+        const box = tab.getBoundingClientRect();
+        if (!box.height) return;
+        const others = gBrowser.visibleTabs.filter(t => t !== tab && !t.pinned);
+        const before = new Map(others.map(t => [t, t.getBoundingClientRect().top]));
+        // Um "fantasma" da aba (ícone + nome) no mesmo lugar, que desliza e some
+        const ghost = this.el("div", { class: "nium-tab-ghost" });
+        const icon = tab.querySelector(".tab-icon-image");
+        if (icon?.src) ghost.append(this.el("img", { src: icon.src, alt: "" }));
+        ghost.append(this.el("span", { text: tab.label || "" }));
+        Object.assign(ghost.style, { left: `${box.left}px`, top: `${box.top}px`, width: `${box.width}px`, height: `${box.height}px` });
+        if (tab.selected) ghost.setAttribute("selected", "true");
+        if (box.width < 64) ghost.setAttribute("compact", "true");
+        document.documentElement.append(ghost);
+        const ease = "cubic-bezier(.2, .8, .2, 1)";
+        ghost
+          .animate(
+            [
+              { opacity: 1, transform: "none" },
+              { opacity: 0, transform: "translateX(-14px) scale(.96)" },
+            ],
+            { duration: 200, easing: ease, fill: "forwards" }
+          )
+          .finished.then(() => ghost.remove(), () => ghost.remove());
+        // Depois que a aba sai, as outras sobem do lugar antigo até o novo
+        requestAnimationFrame(() => {
+          for (const [t, top] of before) {
+            if (!t.isConnected) continue;
+            const delta = top - t.getBoundingClientRect().top;
+            if (Math.abs(delta) > 1) {
+              t.animate([{ transform: `translateY(${delta}px)` }, { transform: "none" }], { duration: 240, easing: ease });
+            }
+          }
+        });
+      } catch (e) {}
+    });
+  },
+
   watchLoading() {
     const urlbar = document.getElementById("urlbar");
     if (!urlbar) return;

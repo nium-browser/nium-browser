@@ -1327,3 +1327,62 @@ sidebar-main:not([expanded]) .tab-close-button {
 .nium-sb-row:hover, .nium-sb-row[open], .nium-icon-button:hover {
   background-color: light-dark(rgba(23, 48, 42, .07), rgba(233, 241, 237, .07)) !important;
 }
+
+/* Fantasma da aba que está fechando (nium-sidebar.js, watchTabClose) */
+.nium-tab-ghost {
+  position: fixed;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+  padding-inline: 10px;
+  border-radius: var(--tab-border-radius, 8px);
+  font-size: 13px;
+  color: var(--toolbox-text-color, currentColor);
+  pointer-events: none;
+  overflow: hidden;
+  white-space: nowrap;
+  > img { width: 16px; height: 16px; flex: none; }
+  > span { overflow: hidden; text-overflow: ellipsis; }
+  &[selected] { background: var(--tab-selected-bgcolor, light-dark(#f7f9f4, #1a282d)); }
+}
+.nium-tab-ghost[compact] { justify-content: center; padding: 0; > span { display: none; } }
+
+/* Lateral recolhida: um "x" pequenininho no canto do ícone, só com o mouse em cima */
+sidebar-main:not([expanded]) #tabbrowser-tabs[orient="vertical"] .tabbrowser-tab:not([pinned]):hover .tab-close-button {
+  display: flex !important;
+  position: absolute !important;
+  top: 1px;
+  inset-inline-end: 1px;
+  z-index: 2;
+  width: 15px !important;
+  height: 15px !important;
+  min-width: 15px !important;
+  padding: 3.5px !important;
+  margin: 0 !important;
+  opacity: 1 !important;
+  border-radius: 50% !important;
+  background-color: light-dark(#f7f9f4, #22323a) !important;
+  box-shadow: 0 0 0 1px light-dark(rgba(23, 48, 42, .14), rgba(233, 241, 237, .14)), 0 2px 6px -2px rgba(0, 0, 0, .4) !important;
+  animation: nium-pop .16s var(--nium-spring, ease) both;
+  > .toolbarbutton-icon { width: 8px !important; height: 8px !important; }
+  &:hover { background-color: light-dark(#e3e8de, #2d4048) !important; }
+}
+sidebar-main:not([expanded]) .tabbrowser-tab .tab-content { position: relative; }
+@keyframes nium-pop { from { opacity: 0; transform: scale(.6); } }
+
+/* Borda em volta da página: o conteúdo fica num cartão com cantos e uma linha fina,
+   com um respiro à direita e embaixo (como no print). */
+#tabbrowser-tabbox {
+  margin: 0 6px 6px 0 !important;
+  border-radius: 10px !important;
+  overflow: clip !important;
+  box-shadow: 0 0 0 1px light-dark(rgba(23, 48, 42, .12), rgba(233, 241, 237, .1)), 0 6px 20px -12px rgba(0, 0, 0, .45) !important;
+}
+:root[inDOMFullscreen] #tabbrowser-tabbox,
+:root[inFullscreen] #tabbrowser-tabbox {
+  margin: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
