@@ -100,3 +100,5 @@ pref("general.smoothScroll", true);
 pref("general.smoothScroll.msdPhysics.enabled", true);
 pref("sidebar.animation.enabled", true);
 pref("browser.tabs.animate", true);
+// A lateral e a barra de cima pegam um toque da cor do site aberto (muda em "Seu Nium")
+pref("nium.tint.enabled", true);

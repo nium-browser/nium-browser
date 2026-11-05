@@ -174,6 +174,7 @@ var NiumSidebar = {
     this.watchLayout();
     this.watchLoading();
     this.watchTabClose();
+    this.watchTint();
     this.takeOverSearchKey();
     this.registerActors();
     this.createSplitButton();
@@ -293,6 +294,52 @@ var NiumSidebar = {
   // Marca a caixa de endereço enquanto a aba atual carrega (a linha que gira é CSS).
   // Fechar aba na lateral com animação: a aba some deslizando e as de baixo sobem suavemente.
   // (O Firefox só anima o fechar nas abas em cima; na lateral a aba sumia de uma vez.)
+  // ---- A moldura (lateral e barra de cima) acompanha a cor da aba aberta ----
+  // Um toque da cor do site (theme-color ou o fundo da página), misturado às cores do Nium,
+  // com transição suave. O logo do Nium nunca muda. Liga e desliga em "Seu Nium".
+  tints: new WeakMap(),
+
+  setTint(browser, color) {
+    this.tints.set(browser, color);
+    if (browser === gBrowser.selectedBrowser) this.applyTint(color);
+  },
+
+  applyTint(color) {
+    const root = document.documentElement;
+    const on = Services.prefs.getBoolPref("nium.tint.enabled", true) && !PrivateBrowsingUtils.isWindowPrivate(window);
+    root.toggleAttribute("nium-tint", on);
+    let rgb = null;
+    if (on && color) {
+      try {
+        const c = InspectorUtils.colorToRGBA(color);
+        if (c && c.a > 0.5) rgb = `rgb(${Math.round(c.r)}, ${Math.round(c.g)}, ${Math.round(c.b)})`;
+      } catch (e) {}
+    }
+    if (rgb) root.style.setProperty("--nium-tint", rgb);
+    else root.style.removeProperty("--nium-tint");
+  },
+
+  watchTint() {
+    const current = () => this.applyTint(this.tints.get(gBrowser.selectedBrowser) ?? null);
+    gBrowser.tabContainer.addEventListener("TabSelect", current);
+    // Ao sair de um site para uma página do Nium (nova aba, configurações), volta às cores do Nium.
+    this._tintListener = {
+      onLocationChange: (webProgress, request, location, flags) => {
+        if (!webProgress?.isTopLevel || flags & Ci.nsIWebProgressListener.LOCATION_CHANGE_SAME_DOCUMENT) return;
+        if (!/^https?:/.test(location?.spec || "")) {
+          this.tints.delete(gBrowser.selectedBrowser);
+          this.applyTint(null);
+        }
+      },
+      QueryInterface: ChromeUtils.generateQI(["nsIWebProgressListener", "nsISupportsWeakReference"]),
+    };
+    gBrowser.addProgressListener(this._tintListener);
+    this._tintPrefObserver = () => current();
+    Services.prefs.addObserver("nium.tint.enabled", this._tintPrefObserver);
+    window.addEventListener("unload", () => Services.prefs.removeObserver("nium.tint.enabled", this._tintPrefObserver), { once: true });
+    current();
+  },
+
   watchTabClose() {
     const container = gBrowser.tabContainer;
     container.addEventListener("TabClose", event => {
@@ -656,6 +703,18 @@ var NiumSidebar = {
       });
     } catch (e) {
       // "NotSupportedError" = já registrado por outra janela; qualquer outro erro aparece no console.
+      if (e.name !== "NotSupportedError") console.error("Nium: registro de ator", e);
+    }
+    try {
+      ChromeUtils.registerWindowActor("NiumTint", {
+        parent: { esModuleURI: "chrome://browser/content/nium/NiumTintParent.sys.mjs" },
+        child: {
+          esModuleURI: "chrome://browser/content/nium/NiumTintChild.sys.mjs",
+          events: { DOMContentLoaded: {}, pageshow: {}, load: {} },
+        },
+        matches: ["http://*/*", "https://*/*"],
+      });
+    } catch (e) {
       if (e.name !== "NotSupportedError") console.error("Nium: registro de ator", e);
     }
     try {

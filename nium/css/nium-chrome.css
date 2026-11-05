@@ -1386,3 +1386,58 @@ sidebar-main:not([expanded]) .tabbrowser-tab .tab-content { position: relative; 
   border-radius: 0 !important;
   box-shadow: none !important;
 }
+
+/* ---- Moldura que acompanha a aba (nium-sidebar.js, applyTint) ----
+   --nium-tint é a cor do site; sem cor (páginas do Nium), fica a cor do Nium. Só um toque
+   (24%) entra na mistura, para o texto continuar legível e nada ficar berrante. */
+@property --nium-tint {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+:root {
+  --nium-base: light-dark(#e3e8de, #0c1417);
+}
+:root[nium-tint] {
+  --nium-tint: var(--nium-base);
+  --nium-frame: color-mix(in srgb, var(--nium-tint) 24%, var(--nium-base));
+  transition: --nium-tint .6s var(--nium-ease);
+}
+@media not (-moz-windows-mica) {
+  :root[nium-tint]:not([privatebrowsingmode]) {
+    --toolbox-bgcolor: var(--nium-frame) !important;
+    --toolbox-bgcolor-inactive: var(--nium-frame) !important;
+    --toolbar-bgcolor: var(--nium-frame) !important;
+    --sidebar-background-color: var(--nium-frame) !important;
+    --lwt-accent-color: var(--nium-frame) !important;
+    --lwt-accent-color-inactive: var(--nium-frame) !important;
+    #browser, #sidebar-main, sidebar-main { background-color: var(--nium-frame) !important; }
+  }
+}
+@media (-moz-windows-mica) {
+  :root[nium-tint]:not([inDOMFullscreen], [inFullscreen], [privatebrowsingmode]) {
+    --nium-glass: color-mix(in srgb, var(--nium-tint) 24%, light-dark(rgba(227, 232, 222, .78), rgba(12, 20, 23, .8)));
+  }
+  /* O canto de cima da lateral (onde fica o logo) leva o mesmo vidro tingido: antes
+     aparecia o vidro do Windows puro, um quadrado mais claro. */
+  :root[nium-sidebar-top]:not([inDOMFullscreen], [inFullscreen], [privatebrowsingmode]) #sidebar-container {
+    background: linear-gradient(var(--nium-glass), var(--nium-glass)) top / 100% var(--nium-toolbox-height, 40px) no-repeat !important;
+  }
+}
+
+/* Logo do Nium: num fundo arredondado que nunca muda (nem com a cor da aba).
+   O fundo é desenhado por dentro, para a altura (que alinha a lateral com a barra) ficar igual. */
+.nium-brand {
+  position: relative;
+  isolation: isolate;
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 5px 0;
+    z-index: -1;
+    border-radius: 10px;
+    background: light-dark(#dde3d8, #121d21);
+    box-shadow: inset 0 0 0 1px light-dark(rgba(23, 48, 42, .07), rgba(233, 241, 237, .06));
+  }
+}
+sidebar-main:not([expanded]) .nium-brand::before { inset: 50% auto auto 50%; width: 32px; height: 32px; translate: -50% -50%; }

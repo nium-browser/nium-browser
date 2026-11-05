@@ -42,6 +42,8 @@ var gNiumPane = {
       glassMica: "Mica (subtle)",
       glassOff: "Off",
       glassHelp: "Windows 11 only. Takes effect when Nium reopens.",
+      tint: "Sidebar and top bar follow the page",
+      tintHelp: "They take on a touch of the open site's color. The Nium logo never changes.",
       bookmarksBar: "Show the bookmarks bar",
       bookmarksBarHelp: "Your sites right below the address bar.",
       welcome: "Show the welcome again",
@@ -114,6 +116,8 @@ var gNiumPane = {
       glassMica: "Mica (sutil)",
       glassOff: "Desligado",
       glassHelp: "Só no Windows 11. Vale ao reabrir o Nium.",
+      tint: "Lateral e barra acompanham a página",
+      tintHelp: "Pegam um toque da cor do site aberto. O logo do Nium nunca muda.",
       bookmarksBar: "Mostrar barra de favoritos",
       bookmarksBarHelp: "Seus sites logo abaixo da barra de endereços.",
       welcome: "Rever a tela de boas-vindas",
@@ -303,6 +307,7 @@ var gNiumPane = {
         }
       }),
       this.el("p", { class: "description-deemphasized nium-pref-note", text: t.glassHelp }),
+      this.toggle(t.tint, t.tintHelp, prefs.getBoolPref("nium.tint.enabled", true), v => prefs.setBoolPref("nium.tint.enabled", v)),
       this.toggle(t.bookmarksBar, t.bookmarksBarHelp, prefs.getCharPref("browser.toolbars.bookmarks.visibility", "never") === "always", v =>
         prefs.setCharPref("browser.toolbars.bookmarks.visibility", v ? "always" : "never")
       ),
