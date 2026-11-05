@@ -446,7 +446,7 @@ var NiumAI = {
     if (!S.entries.length) {
       out.push(
         el("div", { class: "nium-ai-intro" }, [
-          el("span", { class: "nium-ai-orb" }, [icon("chrome://global/skin/icons/highlights.svg")]),
+          el("span", { class: "nium-ai-orb" }, [icon("chrome://browser/content/nium/icons/sparkle.svg")]),
           el("h3", { text: t.introTitle }),
           el("p", { text: t.introText }),
         ])
@@ -466,13 +466,13 @@ var NiumAI = {
       };
       out.push(
         el("div", { class: "nium-ai-quick" }, [
-          action(t.summarize, t.summarizeHelp, "chrome://browser/skin/reader-mode.svg", () => this.start("summary")),
-          action(t.ask, t.askHelp, "chrome://global/skin/icons/search-glass.svg", () => {
+          action(t.summarize, t.summarizeHelp, "chrome://browser/content/nium/icons/book.svg", () => this.start("summary")),
+          action(t.ask, t.askHelp, "chrome://browser/content/nium/icons/search.svg", () => {
             S.usePage = true;
             this.body?.querySelector(".nium-ai-prompt")?.focus();
           }),
         ]),
-        el("p", { class: "nium-ai-hint" }, [icon("chrome://global/skin/icons/info.svg"), el("span", { text: t.hint })])
+        el("p", { class: "nium-ai-hint" }, [icon("chrome://browser/content/nium/icons/help.svg"), el("span", { text: t.hint })])
       );
     }
 

@@ -247,15 +247,17 @@ sidebar-main:not([expanded]) > .nium-sb-block {
 }
 
 /* Painel à direita (Meus espaços), como no Nium Electron */
-#nium-panel {
-  --nium-ink: light-dark(#1d1d1f, #ececee);
-  --nium-muted: light-dark(#6b6b70, #97979d);
-  --nium-dim: light-dark(#9a9aa0, #68686d);
+:root {
+  --nium-ink: light-dark(#17302a, #e9f1ed);
+  --nium-muted: light-dark(#5a6f69, #9fb2ac);
+  --nium-dim: light-dark(#8a9a95, #6a7d78);
   --nium-line: light-dark(rgba(0,0,0,.07), rgba(255,255,255,.06));
   --nium-line-2: light-dark(rgba(0,0,0,.11), rgba(255,255,255,.09));
   --nium-hover: light-dark(rgba(0,0,0,.05), rgba(255,255,255,.055));
-  --nium-surface: light-dark(#ffffff, #1c1c1e);
-  --nium-surface-2: light-dark(#f6f6f7, #232326);
+  --nium-surface: light-dark(#f7f9f4, #142024);
+  --nium-surface-2: light-dark(#eef2ea, #18252a);
+}
+#nium-panel {
   display: flex;
   flex-direction: column;
   flex: none;
@@ -488,7 +490,7 @@ panel {
 .nium-sb-row[open] { background-color: var(--nium-hover); }
 /* Botão de tela dividida na barra de cima */
 #nium-split-button {
-  list-style-image: url("chrome://browser/skin/split-view-left-16.svg");
+  list-style-image: url("chrome://browser/content/nium/icons/split.svg");
 }
 
 /* Painel "Seu espaço": opções com chave liga/desliga */
@@ -611,7 +613,7 @@ panel {
   > span { font-size: 12px; color: var(--nium-muted); }
 }
 /* Nium AI (painel) */
-#nium-ai-button { list-style-image: url("chrome://global/skin/icons/highlights.svg"); }
+#nium-ai-button { list-style-image: url("chrome://browser/content/nium/icons/sparkle.svg"); }
 .nium-ai-intro {
   display: flex;
   flex-direction: column;
@@ -776,11 +778,18 @@ panel {
 .nium-ai-small { margin: 0 !important; font-size: 11px; color: var(--nium-dim); }
 /* --- Nium: fim --- */
 
-/* ---- Boas-vindas (a mesma tela do Nium Electron) ---- */
+/* ---- Boas-vindas: os passos do Nium Electron com o jardim do site (ondas, lente de vidro, serifa) ---- */
 #nium-welcome {
   --nw-ink-2: color-mix(in srgb, var(--nium-ink) 78%, transparent);
   --nw-strong: color-mix(in srgb, var(--nium-ink) 28%, transparent);
-  --nw-frame: light-dark(#ececee, #111113);
+  --nw-sand: #e9ede4;
+  --nw-glass: rgba(246, 249, 243, .62);
+  --nw-glass-2: rgba(255, 255, 255, .5);
+  --nw-edge: rgba(255, 255, 255, .9);
+  --nw-shadow: rgba(52, 78, 70, .34);
+  --nw-scene: url("chrome://browser/content/nium/assets/img/ripples-day.webp");
+  --nw-frost: url("chrome://browser/content/nium/assets/img/ripples-day-frost.webp");
+  --nw-serif: "Nium Serif", "Yu Mincho", Georgia, serif;
   position: fixed;
   inset: 0;
   z-index: 2147483000;
@@ -788,158 +797,412 @@ panel {
   place-items: center;
   padding: 24px;
   overflow: hidden;
-  background: var(--nw-frame);
+  background: var(--nw-sand) var(--nw-scene) center / cover no-repeat;
   color: var(--nium-ink);
   font: menu;
   font-size: 13px;
-  animation: nw-in .3s ease-out;
-  &.nw-leaving { opacity: 0; transition: opacity .2s; }
+  animation: nw-in .5s var(--nium-ease, ease-out);
+  &.nw-leaving { opacity: 0; transform: scale(1.01); transition: opacity .3s var(--nium-ease), transform .3s var(--nium-ease); }
   & button { appearance: none; font: inherit; cursor: default; border: 0; background: none; color: inherit; margin: 0; }
-  & button:focus-visible { outline: var(--focus-outline); outline-offset: 2px; }
-  & h1, & h2 { margin: 0; outline: 0; letter-spacing: -.025em; font-weight: 650; }
-  & h1 { font-size: 28px; }
-  & h2 { font-size: 22px; }
+  & button:focus-visible { outline: 2px solid var(--nium-ink); outline-offset: 2px; }
+  & h1, & h2 { margin: 0; outline: 0; font-family: var(--nw-serif); font-weight: 300; letter-spacing: -.02em; line-height: 1.15; }
+  & h1 { font-size: 40px; }
+  & h2 { font-size: 30px; }
   & [hidden] { display: none !important; }
+}
+@media (prefers-color-scheme: dark) {
+  #nium-welcome {
+    --nw-sand: #0f181c;
+    --nw-glass: rgba(20, 32, 36, .58);
+    --nw-glass-2: rgba(233, 241, 237, .05);
+    --nw-edge: rgba(214, 236, 232, .22);
+    --nw-shadow: rgba(0, 0, 0, .62);
+    --nw-scene: url("chrome://browser/content/nium/assets/img/ripples-night.webp");
+    --nw-frost: url("chrome://browser/content/nium/assets/img/ripples-night-frost.webp");
+  }
 }
 @keyframes nw-in { from { opacity: 0; } to { opacity: 1; } }
 .nw-card {
   display: grid;
-  grid-template-columns: 268px minmax(0, 1fr);
-  width: min(860px, 100%);
-  min-height: min(540px, calc(100vh - 48px));
+  grid-template-columns: 280px minmax(0, 1fr);
+  width: min(900px, 100%);
+  min-height: min(560px, calc(100vh - 48px));
   max-height: calc(100vh - 48px);
-  border-radius: 20px;
+  border-radius: 28px;
   overflow: hidden;
-  background: var(--nium-surface);
-  box-shadow: 0 40px 100px -40px rgba(0,0,0,.5), 0 0 0 1px var(--nium-line);
-  animation: nw-card-in .55s cubic-bezier(.2,.9,.25,1) both;
+  background: var(--nw-glass);
+  backdrop-filter: blur(26px) saturate(1.15);
+  box-shadow: inset 1.5px 2px 2px var(--nw-edge), inset -1px -1px 2px color-mix(in srgb, var(--nw-edge) 30%, transparent), 20px 34px 70px -18px var(--nw-shadow), 0 0 0 1px color-mix(in srgb, var(--nw-edge) 40%, transparent);
+  animation: nw-card-in .8s var(--nium-ease, ease) both;
 }
-@keyframes nw-card-in { from { opacity: 0; transform: translateY(14px) scale(.985); } to { opacity: 1; transform: none; } }
+@keyframes nw-card-in { from { opacity: 0; transform: translateY(14px) scale(.975); } to { opacity: 1; transform: none; } }
 .nw-aside {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding: 26px 22px;
-  background: linear-gradient(180deg, var(--nium-surface-2), color-mix(in srgb, var(--nium-surface-2) 70%, var(--nium-surface)));
-  border-inline-end: 1px solid var(--nium-line);
+  gap: 22px;
+  padding: 28px 24px;
+  border-inline-end: 1px solid color-mix(in srgb, var(--nw-edge) 45%, transparent);
+  background: var(--nw-glass-2);
 }
-.nw-brand { display: flex; align-items: center; gap: 9px; font-size: 17px; font-weight: 700; letter-spacing: -.03em; }
+.nw-brand { display: flex; align-items: center; gap: 10px; font: 300 21px/1 var(--nw-serif); }
 .nw-brand-mark {
-  width: 24px; height: 24px; display: grid; place-items: center; border-radius: 7px;
-  background: var(--nium-ink); color: var(--nium-surface);
-  & svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+  width: 26px; height: 26px; display: grid; place-items: center; border-radius: 8px;
+  background: linear-gradient(135deg, #789681, #305344); color: #e4f1e7;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25);
+  & svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
 }
+/* A lente do site: vidro fosco redondo sobre as ondas */
 .nw-art {
-  aspect-ratio: 1; width: 100%; max-width: 200px; margin: 4px auto 0; display: grid; place-items: center;
-  border-radius: 20px; background: radial-gradient(circle at 50% 40%, var(--nium-surface), transparent 70%);
+  aspect-ratio: 1; width: 100%; max-width: 196px; margin: 6px auto 0; display: grid; place-items: center;
+  padding: 34px; box-sizing: border-box; border-radius: 50%;
+  background: radial-gradient(circle at 34% 26%, rgba(255, 255, 255, .42), rgba(255, 255, 255, .08) 64%), var(--nw-frost) center / 420px auto;
+  box-shadow: inset 1.5px 2px 2px var(--nw-edge), inset -1px -1px 2px color-mix(in srgb, var(--nw-edge) 30%, transparent), inset 0 0 26px 2px rgba(255, 255, 255, .18), 14px 22px 40px -14px var(--nw-shadow);
+  animation: nw-settle 1s var(--nium-ease, ease) both;
   & svg { width: 100%; height: 100%; overflow: visible; fill: none; stroke: var(--nium-ink); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
   & svg * { transform-box: fill-box; transform-origin: center; }
-  & .nw-tile { fill: var(--nium-ink); stroke: none; animation: nw-pop .5s cubic-bezier(.3,1.4,.5,1) both; }
-  & .nw-tile + .nw-draw { stroke: var(--nium-surface); stroke-width: 5; }
-  & .nw-draw { stroke-dasharray: 260; stroke-dashoffset: 260; animation: nw-draw .9s cubic-bezier(.65,0,.35,1) .15s forwards; }
+  & .nw-tile { fill: var(--nium-ink); stroke: none; animation: nw-pop .5s var(--nium-spring, ease) both; }
+  & .nw-tile + .nw-draw { stroke: var(--nw-sand); stroke-width: 5; }
+  & .nw-draw { stroke-dasharray: 260; stroke-dashoffset: 260; animation: nw-draw 1s cubic-bezier(.65,0,.35,1) .15s forwards; }
   & .nw-ring { stroke: var(--nw-strong); stroke-width: 1.5; animation: nw-ring 3.2s ease-out infinite; }
-  & .nw-dot { fill: var(--color-accent-primary); stroke: none; animation: nw-pop .5s cubic-bezier(.3,1.4,.5,1) .8s both; }
-  & .nw-bar { fill: var(--nw-strong); stroke: none; transform-origin: left center; animation: nw-grow .5s cubic-bezier(.2,.9,.25,1) .6s both; }
-  & .nw-aa { font: 700 34px system-ui, sans-serif; fill: var(--nium-ink); stroke: none; animation: nw-breathe 2.6s ease-in-out infinite; }
+  & .nw-dot { fill: var(--color-accent-primary); stroke: none; animation: nw-pop .5s var(--nium-spring, ease) .8s both; }
+  & .nw-bar { fill: var(--nw-strong); stroke: none; transform-origin: left center; animation: nw-grow .5s var(--nium-ease, ease) .6s both; }
+  & .nw-aa { font: 300 38px var(--nw-serif); fill: var(--nium-ink); stroke: none; animation: nw-breathe 2.6s ease-in-out infinite; }
 }
+@keyframes nw-settle { from { opacity: 0; transform: scale(.96); } }
 @keyframes nw-draw { to { stroke-dashoffset: 0; } }
 @keyframes nw-pop { from { transform: scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes nw-ring { 0% { transform: scale(.86); opacity: 0; } 30% { opacity: .9; } 100% { transform: scale(1.08); opacity: 0; } }
 @keyframes nw-grow { from { transform: scaleX(0); opacity: 0; } to { transform: none; opacity: 1; } }
-@keyframes nw-breathe { 0%, 100% { transform: scale(.9); } 50% { transform: scale(1.12); } }
+@keyframes nw-breathe { 0%, 100% { transform: scale(.94); } 50% { transform: scale(1.08); } }
 .nw-steps {
   list-style: none; margin: auto 0 0; padding: 0; display: grid; gap: 2px;
-  & li { display: flex; align-items: center; gap: 10px; padding: 5px 6px; border-radius: 8px; font-size: 12px; color: var(--nium-dim); transition: color .25s, background .25s; }
-  & li.on { color: var(--nium-ink); font-weight: 600; background: var(--nium-surface); }
+  & li { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 9px; font-size: 12.5px; color: var(--nium-dim); transition: color .3s var(--nium-ease), background-color .3s var(--nium-ease); }
+  & li.on { color: var(--nium-ink); font-weight: 600; background: var(--nw-glass-2); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--nw-edge) 50%, transparent); }
   & li.past { color: var(--nw-ink-2); }
 }
 .nw-step-dot {
-  width: 16px; height: 16px; flex: none; border-radius: 50%; box-sizing: border-box;
-  border: 1.5px solid var(--nw-strong); transition: all .3s cubic-bezier(.3,1.4,.5,1);
-  li.on > & { border-color: var(--nium-ink); box-shadow: inset 0 0 0 3px var(--nium-surface), inset 0 0 0 8px var(--nium-ink); }
+  width: 15px; height: 15px; flex: none; border-radius: 50%; box-sizing: border-box;
+  border: 1.5px solid var(--nw-strong); transition: all .35s var(--nium-spring, ease);
+  li.on > & { border-color: var(--nium-ink); box-shadow: inset 0 0 0 3px var(--nw-sand), inset 0 0 0 8px var(--nium-ink); }
   li.past > & { border-color: var(--nw-ink-2); background: var(--nw-ink-2); }
 }
 .nw-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 .nw-progress {
-  height: 3px; background: var(--nium-line); overflow: hidden; flex: none;
-  & span { display: block; height: 100%; width: 0; background: var(--nium-ink); border-radius: 0 3px 3px 0; transition: width .5s cubic-bezier(.65,0,.35,1); }
+  height: 2px; background: color-mix(in srgb, var(--nium-ink) 8%, transparent); overflow: hidden; flex: none;
+  & span { display: block; height: 100%; width: 0; background: var(--nium-ink); border-radius: 0 2px 2px 0; transition: width .6s cubic-bezier(.65,0,.35,1); }
 }
 .nw-body {
-  flex: 1; overflow-y: auto; padding: 34px 40px 20px;
-  & > * { animation: nw-in-next .45s cubic-bezier(.2,.9,.25,1) both; }
-  & > :nth-child(2) { animation-delay: .04s; }
-  & > :nth-child(3) { animation-delay: .08s; }
-  & > :nth-child(4) { animation-delay: .12s; }
-  & > :nth-child(5) { animation-delay: .16s; }
-  & > :nth-child(n+6) { animation-delay: .2s; }
-  & > h1 { margin-top: 28px; }
+  flex: 1; overflow-y: auto; padding: 38px 44px 22px;
+  & > * { animation: nw-in-next .5s var(--nium-ease, ease) both; }
+  & > :nth-child(2) { animation-delay: .05s; }
+  & > :nth-child(3) { animation-delay: .1s; }
+  & > :nth-child(4) { animation-delay: .15s; }
+  & > :nth-child(5) { animation-delay: .2s; }
+  & > :nth-child(n+6) { animation-delay: .25s; }
+  & > h1 { margin-top: 34px; }
 }
-@keyframes nw-in-next { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: none; } }
-.nw-lead { margin: 6px 0 22px; color: var(--nium-muted); line-height: 1.6; max-width: 440px; }
-.nw-label { margin: 18px 0 8px; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--nium-dim); }
-.nw-hint { font-size: 12px; margin-top: 22px; color: var(--nium-muted); }
+@keyframes nw-in-next { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
+.nw-lead { margin: 10px 0 24px; color: var(--nw-ink-2); font-size: 14px; line-height: 1.65; max-width: 460px; }
+.nw-label { margin: 20px 0 8px; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--nium-dim); }
+.nw-hint { font-size: 12.5px; margin-top: 22px; color: var(--nium-muted); }
 .nw-grid { display: grid; gap: 8px; }
 .nw-2 { grid-template-columns: repeat(2, 1fr); }
 .nw-3 { grid-template-columns: repeat(3, 1fr); }
 .nw-4 { grid-template-columns: repeat(4, 1fr); }
 .nw-list, .nw-langs { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
-.nw-langs { margin-top: 24px; flex-direction: row; flex-wrap: wrap; }
+.nw-langs { margin-top: 26px; flex-direction: row; flex-wrap: wrap; }
+#nium-welcome .nw-choice,
+#nium-welcome .nw-size {
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--nium-ink) 10%, transparent);
+  background: var(--nw-glass-2);
+  transition: transform .22s var(--nium-ease), border-color .2s var(--nium-ease), box-shadow .22s var(--nium-ease), background-color .2s var(--nium-ease);
+  &:hover { border-color: var(--nw-strong); transform: translateY(-2px); box-shadow: 0 10px 24px -16px var(--nw-shadow); }
+  &:active { transform: scale(.985); }
+  &.on { border-color: var(--nium-ink); box-shadow: inset 0 0 0 1px var(--nium-ink), 0 10px 24px -18px var(--nw-shadow); }
+}
 #nium-welcome .nw-choice {
   display: flex; flex-direction: column; align-items: stretch; gap: 10px; padding: 10px; text-align: start;
-  border-radius: 12px; border: 1px solid var(--nium-line-2); background: var(--nium-surface-2);
-  transition: transform .18s cubic-bezier(.2,.9,.25,1), border-color .18s, box-shadow .18s;
-  &:hover { border-color: var(--nw-strong); transform: translateY(-2px); box-shadow: 0 8px 20px -14px rgba(0,0,0,.45); }
-  &:active { transform: scale(.99); }
-  &.on { border-color: var(--nium-ink); box-shadow: inset 0 0 0 1px var(--nium-ink); }
-  .nw-list > &, .nw-langs > & { flex-direction: row; align-items: center; padding: 10px 12px; }
+  .nw-list > &, .nw-langs > & { flex-direction: row; align-items: center; padding: 11px 13px; }
   .nw-langs > & { min-width: 130px; }
 }
 .nw-choice-text {
   display: flex; flex-direction: column; gap: 2px; min-width: 0;
   & strong { font-size: 13px; font-weight: 600; }
-  & small { font-size: 11px; color: var(--nium-muted); line-height: 1.4; }
+  & small { font-size: 11.5px; color: var(--nium-muted); line-height: 1.4; }
 }
-.nw-letter, .nw-engine-icon { width: 30px; height: 30px; flex-shrink: 0; border-radius: 8px; }
+.nw-letter, .nw-engine-icon { width: 30px; height: 30px; flex-shrink: 0; border-radius: 9px; }
 .nw-letter { display: grid; place-items: center; background: var(--nium-hover); box-shadow: inset 0 0 0 1px var(--nium-line-2); font-weight: 600; }
 .nw-engine-icon { padding: 6px; box-sizing: border-box; background: var(--nium-surface); box-shadow: inset 0 0 0 1px var(--nium-line-2); }
-.nw-thumb { display: block; height: 64px; border-radius: 8px; border: 1px solid var(--nium-line-2); }
-.nw-thumb-light { background: linear-gradient(#e9e9eb 0 14px, #fff 14px); }
-.nw-thumb-dark { background: linear-gradient(#171719 0 14px, #1c1c1e 14px); }
-.nw-thumb-auto { background: linear-gradient(#e9e9eb 0 14px, #fff 14px) left / 50% 100% no-repeat, linear-gradient(#171719 0 14px, #1c1c1e 14px) right / 50% 100% no-repeat; }
+.nw-thumb { display: block; height: 64px; border-radius: 9px; border: 1px solid var(--nium-line-2); }
+.nw-thumb-light { background: linear-gradient(#e3e8de 0 14px, #f7f9f4 14px); }
+.nw-thumb-dark { background: linear-gradient(#0c1417 0 14px, #142024 14px); }
+.nw-thumb-auto { background: linear-gradient(#e3e8de 0 14px, #f7f9f4 14px) left / 50% 100% no-repeat, linear-gradient(#0c1417 0 14px, #142024 14px) right / 50% 100% no-repeat; }
 #nium-welcome .nw-size {
-  height: 76px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
-  border-radius: 12px; border: 1px solid var(--nium-line-2); background: var(--nium-surface-2);
-  & span { font-weight: 600; line-height: 1; }
+  height: 78px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  & span { font-family: var(--nw-serif); font-weight: 300; line-height: 1; }
   & small { font-size: 11px; color: var(--nium-muted); }
-  &:hover { border-color: var(--nw-strong); }
-  &.on { border-color: var(--nium-ink); box-shadow: inset 0 0 0 1px var(--nium-ink); }
 }
 .nw-switches { display: flex; flex-direction: column; margin-top: 12px; }
 .nw-switches > .nium-option:last-child { border-bottom: 0; }
 #nium-welcome .nw-secondary {
-  margin-top: 22px; display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 16px;
-  border-radius: 8px; border: 1px solid var(--nium-line-2); font-weight: 500;
-  &:hover { background: var(--nium-hover); }
+  margin-top: 22px; display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 18px;
+  border-radius: 10px; border: 1px solid color-mix(in srgb, var(--nium-ink) 16%, transparent); font-weight: 500;
+  background: var(--nw-glass-2);
+  transition: background-color .2s var(--nium-ease), transform .2s var(--nium-ease);
+  &:hover { background: var(--nium-hover); transform: translateY(-1px); }
 }
-.nw-footer { display: flex; align-items: center; gap: 6px; padding: 14px 24px 18px 40px; border-top: 1px solid var(--nium-line); flex: none; }
+.nw-footer { display: flex; align-items: center; gap: 6px; padding: 14px 24px 18px 44px; border-top: 1px solid color-mix(in srgb, var(--nw-edge) 45%, transparent); flex: none; }
 .nw-spacer { flex: 1; }
 #nium-welcome .nw-ghost {
-  height: 34px; padding: 0 14px; border-radius: 8px; color: var(--nium-muted);
+  height: 36px; padding: 0 14px; border-radius: 10px; color: var(--nium-muted);
+  transition: background-color .2s var(--nium-ease), color .2s var(--nium-ease);
   &:hover { background: var(--nium-hover); color: var(--nium-ink); }
 }
 #nium-welcome .nw-primary {
-  height: 34px; padding: 0 18px; border-radius: 8px; background: var(--nium-ink); color: var(--nium-surface); font-weight: 600;
-  transition: transform .15s, box-shadow .2s;
-  &:hover { transform: translateY(-1px); box-shadow: 0 6px 16px -8px rgba(0,0,0,.5); }
+  height: 36px; padding: 0 20px; border-radius: 10px; background: var(--nium-ink); color: var(--nw-sand); font-weight: 600;
+  transition: transform .2s var(--nium-ease), box-shadow .25s var(--nium-ease);
+  &:hover { transform: translateY(-1px); box-shadow: 0 8px 20px -10px var(--nw-shadow); }
   &:active { transform: scale(.98); }
 }
 @media (max-width: 760px) {
   .nw-card { grid-template-columns: 1fr; }
   .nw-aside { flex-direction: row; align-items: center; padding: 14px 18px; border-inline-end: 0; border-bottom: 1px solid var(--nium-line); }
-  .nw-art { width: 56px; margin: 0; border-radius: 12px; }
+  .nw-art { width: 64px; padding: 12px; margin: 0; }
   .nw-steps { display: none; }
   .nw-body { padding: 24px; }
 }
 @media (prefers-reduced-motion: reduce) {
   #nium-welcome *, .nw-card { animation-duration: .01s !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; }
+}
+
+/* ======================================================================
+ * Fase 6: visual final (estilo do site do Nium)
+ * ====================================================================== */
+:root {
+  --nium-ease: cubic-bezier(.2, .8, .2, 1);
+  --nium-spring: cubic-bezier(.3, 1.3, .5, 1);
+  --nium-icons: url("chrome://browser/content/nium/icons/");
+}
+@font-face { font-family: "Nium Serif"; src: url("chrome://browser/content/nium/assets/fonts/noto-serif-jp-light.woff") format("woff"); font-weight: 300; }
+@font-face { font-family: "Nium Italic"; src: url("chrome://browser/content/nium/assets/fonts/crimson-pro-italic.woff") format("woff"); font-style: italic; }
+
+/* ---- Barra de cima: 44px, limpa como o exemplo ---- */
+#nav-bar {
+  min-height: 44px;
+  padding-block: 4px !important;
+  --toolbarbutton-outer-padding: 3px;
+  --toolbarbutton-inner-padding: 9px;
+}
+#urlbar-container { --urlbar-container-height: 36px !important; }
+#urlbar { --urlbar-height: 34px !important; --urlbar-min-height: 34px !important; }
+#urlbar:not([breakout-extend]) { margin-block: 1px !important; }
+#urlbar:not([focused]) > .urlbar-background {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+#urlbar-input::placeholder { opacity: .62; }
+/* Dentro da barra fica só a estrela. Os outros aparecem quando a barra está em uso
+   (mouse em cima ou digitando) ou quando estão ligados (leitura aberta, página traduzida). */
+#urlbar:not(:hover, [focused]) #page-action-buttons > :not(#star-button-box, #userContext-icons, [open], [readeractive], [translationsactive], [sharing]) {
+  display: none !important;
+}
+#page-action-buttons > :not(#star-button-box) {
+  transition: opacity .18s var(--nium-ease);
+  @starting-style { opacity: 0; }
+}
+/* Escudo do Firefox (o Nium Shield já fica na lateral) e seletor de busca só ao clicar na barra */
+#tracking-protection-icon-container { display: none !important; }
+#urlbar:not([focused]) .searchmode-switcher,
+#urlbar:not([focused]) #urlbar-searchmode-switcher { display: none !important; }
+/* Botões da direita: só Nium AI, tela dividida, downloads (quando há) e menu */
+#alltabs-button,
+#ai-window-toggle,
+#smartwindow-group-tabs-button,
+#fxa-toolbar-menu-button,
+#nav-bar #ipprotection-button { display: none !important; }
+/* Extensões e uBlock somem da vista, mas continuam no lugar (largura zero) para os
+   painéis deles (ex.: o do Nium Shield) ainda abrirem presos no canto da barra. */
+#unified-extensions-button,
+#ublock0_raymondhill_net-browser-action {
+  min-width: 0 !important;
+  width: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+/* Ícones do Nium nos botões do Nium */
+#nium-split-button { list-style-image: url("chrome://browser/content/nium/icons/split.svg") !important; }
+#nium-ai-button { list-style-image: url("chrome://browser/content/nium/icons/sparkle.svg") !important; }
+
+/* Todos os botões: realce suave ao passar o mouse e ao clicar */
+.toolbarbutton-1 > .toolbarbutton-icon,
+.toolbarbutton-1 > .toolbarbutton-badge-stack,
+.toolbarbutton-1 > .toolbarbutton-text,
+#urlbar .urlbar-page-action,
+#urlbar .identity-box-button {
+  transition: background-color .16s var(--nium-ease), transform .16s var(--nium-ease), opacity .16s var(--nium-ease) !important;
+}
+.toolbarbutton-1:not([disabled]):active > .toolbarbutton-icon,
+.toolbarbutton-1:not([disabled]):active > .toolbarbutton-badge-stack { transform: scale(.92); }
+.urlbar-background { transition: background-color .2s var(--nium-ease), border-color .2s var(--nium-ease), box-shadow .2s var(--nium-ease); }
+
+/* ---- Menu ☰ com ícones e grupos (como o exemplo) ---- */
+#appMenu-popup {
+  --panel-width: 300px;
+  --menuitem-padding: 7px 10px;
+}
+#appMenu-mainView .subviewbutton:not(.subviewbutton-iconic) > .toolbarbutton-icon {
+  display: flex !important;
+  width: 16px;
+  height: 16px;
+  margin-inline-end: 10px !important;
+  -moz-context-properties: fill, fill-opacity;
+  fill: currentColor;
+  fill-opacity: .85;
+}
+#appMenu-mainView .subviewbutton { border-radius: 8px !important; min-height: 32px; }
+#appMenu-new-tab-button2 { list-style-image: url("chrome://browser/content/nium/icons/plus.svg") !important; }
+#appMenu-new-window-button2, #appMenu-new-classic-window-button { list-style-image: url("chrome://browser/content/nium/icons/window.svg") !important; }
+#appMenu-new-private-window-button2 { list-style-image: url("chrome://browser/content/nium/icons/private.svg") !important; }
+#appMenu-history-button { list-style-image: url("chrome://browser/content/nium/icons/history.svg") !important; }
+#appMenu-bookmarks-button { list-style-image: url("chrome://browser/content/nium/icons/bookmarks.svg") !important; }
+#appMenu-tab-groups-button { list-style-image: url("chrome://browser/content/nium/icons/tabgroups.svg") !important; }
+#appMenu-downloads-button { list-style-image: url("chrome://browser/content/nium/icons/download.svg") !important; }
+#appMenu-passwords-button { list-style-image: url("chrome://browser/content/nium/icons/key.svg") !important; }
+#appMenu-extensions-themes-button, #appMenu-unified-extensions-button { list-style-image: url("chrome://browser/content/nium/icons/puzzle.svg") !important; }
+#appMenu-print-button2 { list-style-image: url("chrome://browser/content/nium/icons/print.svg") !important; }
+#appMenu-save-file-button2 { list-style-image: url("chrome://browser/content/nium/icons/save.svg") !important; }
+#appMenu-translate-button { list-style-image: url("chrome://browser/content/nium/icons/translate.svg") !important; }
+#appMenu-find-button2 { list-style-image: url("chrome://browser/content/nium/icons/search.svg") !important; }
+#appMenu-settings-button { list-style-image: url("chrome://browser/content/nium/icons/settings.svg") !important; }
+#appMenu-more-button2 { list-style-image: url("chrome://browser/content/nium/icons/tools.svg") !important; }
+#appMenu-help-button2 { list-style-image: url("chrome://browser/content/nium/icons/help.svg") !important; }
+#appMenu-quit-button2 { list-style-image: url("chrome://browser/content/nium/icons/quit.svg") !important; }
+/* Sem conta Mozilla, perfis, IA do Firefox nem "indique" no topo do menu */
+#appMenu-fxa-status2, #appMenu-fxa-separator, #appMenu-fxa-sign-in-promo, #appMenu-nova-fxa-label,
+#appMenu-create-profile-button, #appMenu-profiles-button, #appMenu-new-ai-window-button,
+#appMenu-chats-history-button, #appMenu-referrals-separator, #appMenu-referrals-button {
+  display: none !important;
+}
+#appMenu-zoom-controls { padding-inline-start: 36px !important; }
+
+/* ---- Menu do botão direito: só o essencial ---- */
+#context-sendlinktodevice, #context-sep-sendlinktodevice,
+#context-sendpagetodevice, #context-sep-sendpagetodevice,
+#context-sendimage, #context-sendvideo, #context-sendaudio,
+#context-take-screenshot, #context-use-mini-window, #context-sep-screenshots,
+#context-ask-chat, #context-create-aitab, #context-openlinksmartwindow,
+#context-turn-on-highlight-menu, #context-inspect-a11y, #context-frameOsPid,
+#context-setDesktopBackground, #context-sep-setbackground, #context-viewimagedesc,
+#context-openlinkincontainertab, #context-openlinkinusercontext-menu,
+#context-bookmarkframe, #context-media-eme-separator, #context-media-eme-learnmore {
+  display: none !important;
+}
+
+/* ---- Menus, painéis e dicas: vidro, cantos de 12px, entrada suave ---- */
+menupopup, panel {
+  --panel-border-radius: 12px !important;
+  --panel-shadow: 0 16px 40px -12px rgba(5, 20, 18, .45), 0 2px 6px -2px rgba(5, 20, 18, .25) !important;
+  --panel-padding: 5px !important;
+}
+menupopup > menuitem, menupopup > menu {
+  border-radius: 6px !important;
+  transition: background-color .12s var(--nium-ease), color .12s var(--nium-ease);
+}
+@media (-moz-windows-mica-popups) {
+  menupopup, panel {
+    --panel-background: color-mix(in srgb, light-dark(#f4f7f1, #142024) 72%, transparent) !important;
+    --panel-border-color: light-dark(rgba(255, 255, 255, .7), rgba(214, 236, 232, .12)) !important;
+  }
+}
+tooltip {
+  appearance: none !important;
+  background: light-dark(#17302a, #e9f1ed) !important;
+  color: light-dark(#f1f5ee, #0f181c) !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  padding: 5px 9px !important;
+  font-size: 12px !important;
+  box-shadow: 0 8px 20px -8px rgba(5, 20, 18, .5) !important;
+}
+
+/* ---- Vidro na janela (Mica/Acrílico do Windows 11) ----
+   Quando o Windows dá o vidro, a moldura, a barra e a lateral ficam transparentes
+   e só o conteúdo das páginas continua sólido. */
+@media (-moz-windows-mica) {
+  :root:not([inDOMFullscreen], [inFullscreen], [privatebrowsingmode]) {
+    background-color: transparent !important;
+    --lwt-accent-color: transparent !important;
+    --lwt-accent-color-inactive: transparent !important;
+    --toolbox-bgcolor: transparent !important;
+    --toolbox-bgcolor-inactive: transparent !important;
+    --toolbar-bgcolor: light-dark(rgba(247, 250, 244, .42), rgba(17, 28, 32, .42)) !important;
+    --sidebar-background-color: transparent !important;
+    --tabs-navbar-separator-color: transparent !important;
+    #navigator-toolbox, #titlebar, #TabsToolbar, #sidebar-main, sidebar-main, #sidebar-box { background: transparent !important; }
+    #nav-bar { background-color: var(--toolbar-bgcolor) !important; }
+    #urlbar:not([focused]) > .urlbar-background { background-color: light-dark(rgba(255, 255, 255, .55), rgba(255, 255, 255, .06)) !important; }
+  }
+}
+
+/* ---- Lateral: abas com movimento suave ---- */
+#tabbrowser-tabs[orient="vertical"] {
+  /* (a aba arrastada fica sem transição, para seguir o mouse sem atraso) */
+  .tabbrowser-tab:not([dragtarget]) {
+    transition: transform .2s var(--nium-ease), opacity .2s var(--nium-ease) !important;
+  }
+  .tabbrowser-tab[fadein]:not([pinned]) > .tab-stack {
+    animation: nium-tab-in .24s var(--nium-ease);
+  }
+  .tab-background {
+    transition: background-color .16s var(--nium-ease), box-shadow .2s var(--nium-ease);
+  }
+  /* Aba sendo arrastada: levanta um pouco, com sombra */
+  .tabbrowser-tab[dragtarget] .tab-background {
+    box-shadow: 0 10px 24px -10px rgba(5, 20, 18, .55) !important;
+    background-color: var(--tab-selected-bgcolor, light-dark(#f7f9f4, #1a282d)) !important;
+  }
+  .tabbrowser-tab[dragtarget] { z-index: 2; scale: 1.02; }
+  /* Fechar aba: um "x" do Nium, menor, que aparece com o mouse em cima */
+  .tab-close-button {
+    list-style-image: url("chrome://browser/content/nium/icons/close.svg") !important;
+    width: 22px !important;
+    height: 22px !important;
+    padding: 3px !important;
+    border-radius: 6px !important;
+    opacity: 0;
+    transition: opacity .15s var(--nium-ease), background-color .15s var(--nium-ease);
+  }
+  .tabbrowser-tab:is(:hover, [selected]) .tab-close-button { opacity: .75; }
+  .tab-close-button:hover { opacity: 1 !important; background-color: var(--nium-hover, rgba(127, 127, 127, .14)) !important; }
+}
+@keyframes nium-tab-in {
+  from { opacity: 0; transform: translateX(-8px); }
+}
+/* Linhas da lateral do Nium */
+.nium-sb-row, .nium-link-row, .nium-icon-button {
+  transition: background-color .15s var(--nium-ease), color .15s var(--nium-ease), transform .15s var(--nium-ease);
+}
+.nium-sb-row:active, .nium-icon-button:active { transform: scale(.97); }
+.nium-sb-icon { -moz-context-properties: fill, fill-opacity; fill: currentColor; }
+
+/* Painel da direita (espaços, notas, leitura, IA): entra deslizando */
+#nium-panel:not([hidden]) {
+  animation: nium-panel-in .28s var(--nium-ease);
+}
+@keyframes nium-panel-in {
+  from { opacity: 0; transform: translateX(12px); }
+}
+.nium-panel-body > * {
+  animation: nium-fade-up .3s var(--nium-ease) both;
+}
+@keyframes nium-fade-up {
+  from { opacity: 0; transform: translateY(4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #nium-panel, .nium-panel-body > *, #tabbrowser-tabs .tab-stack { animation: none !important; }
 }

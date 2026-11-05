@@ -182,6 +182,7 @@ var NiumSidebar = {
     } catch (e) {
       console.error("Nium: Nium AI", e);
     }
+    this.registerContentStyle();
     try {
       Services.scriptloader.loadSubScript("chrome://browser/content/nium/nium-welcome.js", window);
       window.NiumWelcome.maybeShow();
@@ -252,7 +253,7 @@ var NiumSidebar = {
     const button = this.el(
       "button",
       { class: "nium-sb-search", title: t.searchTabs, onclick: () => this.startSearch() },
-      [this.icon("chrome://global/skin/icons/search-glass.svg"), this.el("span", { class: "nium-sb-text", text: t.searchTabs }), kbd]
+      [this.icon("chrome://browser/content/nium/icons/search.svg"), this.el("span", { class: "nium-sb-text", text: t.searchTabs }), kbd]
     );
     // O atalho pode mudar em about:keyboard: atualiza ao passar o mouse.
     button.addEventListener("mouseenter", () => (kbd.textContent = this.shortcutText("key_searchTabs")));
@@ -283,7 +284,7 @@ var NiumSidebar = {
     this.searchInput = input;
     this.searchBox = this.el("div", { class: "nium-sb-search-box" }, [
       button,
-      this.el("div", { class: "nium-sb-search-field" }, [this.icon("chrome://global/skin/icons/search-glass.svg"), input]),
+      this.el("div", { class: "nium-sb-search-field" }, [this.icon("chrome://browser/content/nium/icons/search.svg"), input]),
     ]);
     return this.searchBox;
   },
@@ -303,6 +304,18 @@ var NiumSidebar = {
   },
 
   // ---- ajudantes de DOM ----
+  // Visual do Nium nas páginas internas (configurações, complementos, anônima, erros): uma folha
+  // de estilo do navegador, registrada uma vez para todas as janelas e abas.
+  registerContentStyle() {
+    try {
+      const sss = Cc["@mozilla.org/content/style-sheet-service;1"].getService(Ci.nsIStyleSheetService);
+      const uri = Services.io.newURI("chrome://browser/content/nium/nium-content.css");
+      if (!sss.sheetRegistered(uri, sss.AGENT_SHEET)) sss.loadAndRegisterSheet(uri, sss.AGENT_SHEET);
+    } catch (e) {
+      console.error("Nium: estilo das páginas internas", e);
+    }
+  },
+
   el(tag, props = {}, children = []) {
     const node = document.createElementNS(this.HTML, tag);
     for (const [key, value] of Object.entries(props)) {
@@ -378,7 +391,7 @@ var NiumSidebar = {
     const picker = this.el(
       "button",
       { class: "nium-space-picker", title: t.mySpaces, onclick: () => this.togglePanel("spaces") },
-      [this.el("span", { class: "nium-space-icon" }, [this.icon("chrome://global/skin/icons/folder.svg")]), this.spaceName]
+      [this.el("span", { class: "nium-space-icon" }, [this.icon("chrome://browser/content/nium/icons/folder.svg")]), this.spaceName]
     );
     this.spacesButton = picker;
     const search = this.buildSearch();
@@ -393,7 +406,7 @@ var NiumSidebar = {
       "button",
       { class: "nium-sb-row", title: t.shieldTitle, onclick: () => this.openShield() },
       [
-        this.icon("chrome://browser/skin/tracking-protection.svg"),
+        this.icon("chrome://browser/content/nium/icons/shield.svg"),
         this.el("span", { class: "nium-sb-text", text: t.shield }),
         (this.shieldDot = this.el("span", { class: "nium-shield-dot" })),
       ]
@@ -404,19 +417,19 @@ var NiumSidebar = {
       [
         this.el("span", { class: "nium-avatar", text: "N" }),
         this.el("span", { class: "nium-sb-text", text: t.yourSpace }),
-        this.icon("chrome://global/skin/icons/settings.svg"),
+        this.icon("chrome://browser/content/nium/icons/settings.svg"),
       ]
     ));
     const notes = this.el(
       "button",
       { class: "nium-sb-row", title: t.notes, onclick: () => this.togglePanel("notes") },
-      [this.icon("chrome://global/skin/icons/edit-outline.svg"), this.el("span", { class: "nium-sb-text", text: t.notes })]
+      [this.icon("chrome://browser/content/nium/icons/note.svg"), this.el("span", { class: "nium-sb-text", text: t.notes })]
     );
     this.notesButton = notes;
     const reading = (this.readingButton = this.el(
       "button",
       { class: "nium-sb-row", title: t.readingList, onclick: () => this.togglePanel("reading") },
-      [this.icon("chrome://browser/skin/reader-mode.svg"), this.el("span", { class: "nium-sb-text", text: t.readingList })]
+      [this.icon("chrome://browser/content/nium/icons/book.svg"), this.el("span", { class: "nium-sb-text", text: t.readingList })]
     ));
     return this.el("div", { id: "nium-sidebar-bottom", class: "nium-sb-block" }, [reading, notes, shield, you]);
   },
@@ -459,7 +472,7 @@ var NiumSidebar = {
     const browser = document.getElementById("browser");
     if (!browser || document.getElementById("nium-panel")) return;
     this.panelTitle = this.el("span", { class: "nium-panel-title" });
-    this.panelIcon = this.icon("chrome://global/skin/icons/folder.svg");
+    this.panelIcon = this.icon("chrome://browser/content/nium/icons/folder.svg");
     this.panelBody = this.el("div", { class: "nium-panel-body" });
     const close = this.el("button", { class: "nium-icon-button", title: this.t.close, onclick: () => this.closePanel() }, [
       this.icon("chrome://global/skin/icons/close.svg"),
@@ -497,23 +510,23 @@ var NiumSidebar = {
     if (name !== "notes") this.panel.removeAttribute("wide");
     this.panelBody.hidden = name === "notes";
     if (name === "spaces") {
-      this.panelIcon.src = "chrome://global/skin/icons/folder.svg";
+      this.panelIcon.src = "chrome://browser/content/nium/icons/folder.svg";
       this.panelTitle.textContent = this.t.mySpaces;
       this.renderSpaces();
     } else if (name === "ai") {
-      this.panelIcon.src = "chrome://global/skin/icons/highlights.svg";
+      this.panelIcon.src = "chrome://browser/content/nium/icons/sparkle.svg";
       this.panelTitle.textContent = "Nium AI";
       window.NiumAI?.render(this.panelBody);
     } else if (name === "reading") {
-      this.panelIcon.src = "chrome://browser/skin/reader-mode.svg";
+      this.panelIcon.src = "chrome://browser/content/nium/icons/book.svg";
       this.panelTitle.textContent = this.t.readingList;
       this.renderReading();
     } else if (name === "you") {
-      this.panelIcon.src = "chrome://global/skin/icons/settings.svg";
+      this.panelIcon.src = "chrome://browser/content/nium/icons/settings.svg";
       this.panelTitle.textContent = this.t.youTitle;
       this.renderYou();
     } else if (name === "notes") {
-      this.panelIcon.src = "chrome://global/skin/icons/edit-outline.svg";
+      this.panelIcon.src = "chrome://browser/content/nium/icons/note.svg";
       this.panelTitle.textContent = this.t.notes;
       this.showNotes();
       this.applyNotesWide();
@@ -701,10 +714,10 @@ var NiumSidebar = {
       this.el("button", { class: "nium-link-row", onclick: action }, [this.icon(icon), this.el("span", { text: label })]);
     body.append(
       this.el("div", { class: "nium-subheading", text: "" }),
-      link(t.openSettings, "chrome://global/skin/icons/settings.svg", () => openPreferences("paneNium")),
-      link(t.openShortcuts, "chrome://global/skin/icons/search-glass.svg", () => openTrustedLinkIn("about:keyboard", "tab")),
-      link(t.openAddons, "chrome://mozapps/skin/extensions/extension.svg", () => BrowserAddonUI.openAddonsMgr("addons://list/extension")),
-      link(t.openWelcome, "chrome://global/skin/icons/info.svg", () => {
+      link(t.openSettings, "chrome://browser/content/nium/icons/settings.svg", () => openPreferences("paneNium")),
+      link(t.openShortcuts, "chrome://browser/content/nium/icons/search.svg", () => openTrustedLinkIn("about:keyboard", "tab")),
+      link(t.openAddons, "chrome://browser/content/nium/icons/puzzle.svg", () => BrowserAddonUI.openAddonsMgr("addons://list/extension")),
+      link(t.openWelcome, "chrome://browser/content/nium/icons/help.svg", () => {
         this.closePanel();
         window.NiumWelcome?.show();
       })
@@ -773,7 +786,7 @@ var NiumSidebar = {
     body.textContent = "";
     body.append(this.el("p", { class: "nium-panel-description", text: t.readingIntro }));
     const save = this.el("button", { class: "nium-primary-button", onclick: () => this.saveForLater() }, [
-      this.icon("chrome://global/skin/icons/plus.svg"),
+      this.icon("chrome://browser/content/nium/icons/plus.svg"),
       this.el("span", { text: t.readingSave }),
     ]);
     if (!this.webURL(gBrowser.selectedBrowser.currentURI?.spec)) save.disabled = true;
@@ -782,7 +795,7 @@ var NiumSidebar = {
     if (!all.length) {
       body.append(
         this.el("div", { class: "nium-empty-state" }, [
-          this.el("span", { class: "nium-empty-icon" }, [this.icon("chrome://browser/skin/reader-mode.svg")]),
+          this.el("span", { class: "nium-empty-icon" }, [this.icon("chrome://browser/content/nium/icons/book.svg")]),
           this.el("h3", { text: t.readingEmptyTitle }),
           this.el("p", { text: t.readingEmptyText }),
         ])
@@ -920,7 +933,7 @@ var NiumSidebar = {
 
     const isPrivate = PrivateBrowsingUtils.isWindowPrivate(window);
     const saveButton = this.el("button", { class: "nium-primary-button", onclick: () => showForm() }, [
-      this.icon("chrome://global/skin/icons/plus.svg"),
+      this.icon("chrome://browser/content/nium/icons/plus.svg"),
       this.el("span", { text: t.saveCurrent }),
     ]);
     if (isPrivate) saveButton.disabled = true;
@@ -968,7 +981,7 @@ var NiumSidebar = {
     if (!spaces.length) {
       body.append(
         this.el("div", { class: "nium-empty-state" }, [
-          this.el("span", { class: "nium-empty-icon" }, [this.icon("chrome://global/skin/icons/folder.svg")]),
+          this.el("span", { class: "nium-empty-icon" }, [this.icon("chrome://browser/content/nium/icons/folder.svg")]),
           this.el("h3", { text: t.emptyTitle }),
           this.el("p", { text: t.emptyText }),
         ])
@@ -999,7 +1012,7 @@ var NiumSidebar = {
         this.el("p", { text: [t.tabsCount(space.tabs.length), date].filter(Boolean).join(" · ") }),
         this.el("p", { class: "nium-card-tabs", text: space.tabs.slice(0, 3).map(x => x.title).join(" · ") }),
         this.el("button", { class: "nium-secondary-button nium-full-width", onclick: () => this.openSpace(space) }, [
-          this.icon("chrome://global/skin/icons/folder.svg"),
+          this.icon("chrome://browser/content/nium/icons/folder.svg"),
           this.el("span", { text: t.restore }),
         ]),
       ]);

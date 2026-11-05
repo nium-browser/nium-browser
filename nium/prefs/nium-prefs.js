@@ -87,3 +87,16 @@ pref("extensions.autoDisableScopes", 14);
 pref("intl.locale.requested", "");
 // O pacote de idioma é feito na própria compilação (sem assinatura da Mozilla)
 pref("extensions.langpacks.signatures.required", false);
+
+// Fase 6: visual final
+// Vidro do Windows 11 na janela e nos menus (0 auto, 1 Mica, 2 Acrílico, 3 Mica com abas). Muda em "Seu Nium".
+pref("widget.windows.mica", true);
+pref("widget.windows.mica.popups", 1);
+pref("widget.windows.mica.toplevel-backdrop", 2);
+// Barras de rolagem finas, que aparecem ao rolar ou passar o mouse
+pref("ui.useOverlayScrollbars", 1);
+// Rolagem e animações mais suaves
+pref("general.smoothScroll", true);
+pref("general.smoothScroll.msdPhysics.enabled", true);
+pref("sidebar.animation.enabled", true);
+pref("browser.tabs.animate", true);

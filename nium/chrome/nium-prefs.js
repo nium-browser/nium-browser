@@ -37,6 +37,11 @@ var gNiumPane = {
       tabs: "Where the tabs go",
       tabsSide: "On the side",
       tabsTop: "On top",
+      glass: "Window glass",
+      glassAcrylic: "Acrylic (more glass)",
+      glassMica: "Mica (subtle)",
+      glassOff: "Off",
+      glassHelp: "Windows 11 only. Takes effect when Nium reopens.",
       bookmarksBar: "Show the bookmarks bar",
       bookmarksBarHelp: "Your sites right below the address bar.",
       welcome: "Show the welcome again",
@@ -104,6 +109,11 @@ var gNiumPane = {
       tabs: "Posição das abas",
       tabsSide: "Na lateral",
       tabsTop: "No topo",
+      glass: "Vidro da janela",
+      glassAcrylic: "Acrílico (mais vidro)",
+      glassMica: "Mica (sutil)",
+      glassOff: "Desligado",
+      glassHelp: "Só no Windows 11. Vale ao reabrir o Nium.",
       bookmarksBar: "Mostrar barra de favoritos",
       bookmarksBarHelp: "Seus sites logo abaixo da barra de endereços.",
       welcome: "Rever a tela de boas-vindas",
@@ -285,6 +295,14 @@ var gNiumPane = {
       this.select(t.tabs, [["side", t.tabsSide], ["top", t.tabsTop]], prefs.getBoolPref("sidebar.verticalTabs", true) ? "side" : "top", v =>
         prefs.setBoolPref("sidebar.verticalTabs", v === "side")
       ),
+      this.select(t.glass, [["2", t.glassAcrylic], ["1", t.glassMica], ["off", t.glassOff]], this.glassValue(prefs), v => {
+        if (v === "off") prefs.setBoolPref("widget.windows.mica", false);
+        else {
+          prefs.setBoolPref("widget.windows.mica", true);
+          prefs.setIntPref("widget.windows.mica.toplevel-backdrop", Number(v));
+        }
+      }),
+      this.el("p", { class: "description-deemphasized nium-pref-note", text: t.glassHelp }),
       this.toggle(t.bookmarksBar, t.bookmarksBarHelp, prefs.getCharPref("browser.toolbars.bookmarks.visibility", "never") === "always", v =>
         prefs.setCharPref("browser.toolbars.bookmarks.visibility", v ? "always" : "never")
       ),
@@ -295,6 +313,11 @@ var gNiumPane = {
         }),
       ]),
     ]);
+  },
+
+  glassValue(prefs) {
+    if (!prefs.getBoolPref("widget.windows.mica", true)) return "off";
+    return prefs.getIntPref("widget.windows.mica.toplevel-backdrop", 2) === 1 ? "1" : "2";
   },
 
   shortcutsSection() {

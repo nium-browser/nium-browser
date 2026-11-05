@@ -69,3 +69,67 @@ dialog input:focus { border-color: var(--line-strong); box-shadow: var(--ring); 
 .dialog-buttons button { height: 32px; padding: 0 14px; border-radius: 6px; font-weight: 500; }
 .dialog-buttons .secondary { background: var(--hover); }
 .dialog-buttons .primary { background: var(--ink); color: var(--bg); }
+
+/* ---- Fase 6: o jardim do site do Nium (ondas, serifa, vidro), bem de leve ---- */
+@font-face { font-family: "Nium Serif"; src: url("assets/noto-serif-jp-light.woff") format("woff"); font-weight: 300; }
+:root {
+  --bg: #e9ede4; --surface-2: rgba(255, 255, 255, .55); --ink: #17302a; --ink-2: #37504a; --muted: #5a6f69; --dim: #8a9a95;
+  --line: rgba(23, 48, 42, .08); --line-2: rgba(23, 48, 42, .12); --line-strong: rgba(23, 48, 42, .22);
+  --hover: rgba(23, 48, 42, .06); --accent: #3f6f5c;
+  --edge: rgba(255, 255, 255, .9); --shadow: rgba(52, 78, 70, .3);
+  --scene: url("assets/ripples-day.webp");
+  --serif: "Nium Serif", "Yu Mincho", Georgia, serif;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f181c; --surface-2: rgba(233, 241, 237, .05); --ink: #e9f1ed; --ink-2: #c6d4cf; --muted: #9fb2ac; --dim: #6a7d78;
+    --line: rgba(233, 241, 237, .07); --line-2: rgba(233, 241, 237, .1); --line-strong: rgba(233, 241, 237, .2);
+    --hover: rgba(233, 241, 237, .06); --accent: #9cbfae;
+    --edge: rgba(214, 236, 232, .25); --shadow: rgba(0, 0, 0, .6);
+    --scene: url("assets/ripples-night.webp");
+  }
+}
+body { min-height: 100vh; background: transparent; }
+/* As ondas do site, apagando para as bordas, atrás de tudo */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: var(--scene) center 38% / max(100vw, 160vh) auto no-repeat;
+  opacity: .7;
+  mask: radial-gradient(ellipse 70% 62% at 50% 38%, #000 30%, transparent 78%);
+  animation: nt-appear 1.2s var(--ease) both;
+}
+@keyframes nt-appear { from { opacity: 0; } }
+.hero h1 { font: 300 46px/1.12 var(--serif); letter-spacing: -.02em; }
+.hero h1 em { font-weight: 300; }
+.hero, .hero-search, .shortcuts { animation: nt-rise .7s var(--ease) both; }
+.hero-search { animation-delay: .06s; }
+.shortcuts { animation-delay: .12s; }
+@keyframes nt-rise { from { opacity: 0; transform: translateY(8px); } }
+.hero-search {
+  height: 48px;
+  border-radius: 14px;
+  background: var(--surface-2);
+  backdrop-filter: blur(18px) saturate(1.1);
+  border: 1px solid var(--line-2);
+  box-shadow: inset 1px 1.5px 1.5px var(--edge), 0 14px 34px -22px var(--shadow);
+  transition: border-color .2s var(--ease), box-shadow .25s var(--ease);
+}
+.hero-search > button { width: 36px; height: 36px; border-radius: 10px; transition: transform .2s var(--ease), filter .2s; }
+.hero-search > button:hover { transform: translateX(1px); }
+.shortcut { transition: background-color .18s var(--ease), transform .2s var(--ease); }
+.shortcut:hover { transform: translateY(-2px); }
+.shortcut-icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: var(--surface-2);
+  backdrop-filter: blur(12px);
+  box-shadow: inset 1px 1.5px 1px var(--edge);
+  transition: border-color .18s var(--ease), box-shadow .2s var(--ease);
+}
+.shortcut:hover .shortcut-icon { box-shadow: inset 1px 1.5px 1px var(--edge), 0 10px 22px -14px var(--shadow); }
+@media (prefers-reduced-motion: reduce) {
+  body::before, .hero, .hero-search, .shortcuts { animation: none; }
+}

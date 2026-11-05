@@ -146,6 +146,8 @@ def newtab():
     src = KIT / 'newtab' / name
     if not (dest / name).exists() or (dest / name).read_bytes() != src.read_bytes():
       shutil.copyfile(src, dest / name)
+  # Fontes e ondas do site (Fase 6)
+  copy_tree(KIT / 'newtab' / 'assets', dest / 'assets')
   html = (KIT / 'newtab' / 'activity-stream.html').read_text(encoding='utf-8')
   write_if_changed(nt / 'prerendered' / 'activity-stream.html', html)
   jar = nt / 'addon-jar.mn'
@@ -365,6 +367,11 @@ PATCHES = [
   ('browser/components/preferences/preferences.js',
    '  register_module("panePrivacy", gPrivacyPane);\n',
    '  register_module("panePrivacy", gPrivacyPane);\n  register_module("paneNium", gNiumPane); // Nium\n'),
+  # Lateral: ícones do Nium nos botões do Firefox (histórico, favoritos, IA, personalizar)
+  ('browser/components/sidebar/browser-sidebar.js', 'iconUrl: "chrome://browser/skin/history.svg",', 'iconUrl: "chrome://browser/content/nium/icons/history.svg",'),
+  ('browser/components/sidebar/browser-sidebar.js', 'iconUrl: "chrome://browser/skin/bookmark-hollow.svg",', 'iconUrl: "chrome://browser/content/nium/icons/bookmarks.svg",'),
+  ('browser/components/sidebar/browser-sidebar.js', 'iconUrl: "chrome://global/skin/icons/highlights.svg",', 'iconUrl: "chrome://browser/content/nium/icons/sparkle.svg",'),
+  ('browser/components/sidebar/browser-sidebar.js', 'iconUrl: "chrome://global/skin/icons/settings.svg",', 'iconUrl: "chrome://browser/content/nium/icons/settings.svg",'),
   # about:logins: tira as instruções de sincronizar com conta Mozilla
   ('browser/components/aboutlogins/content/aboutLogins.html', '        <ul>\n          <li data-l10n-id="login-intro-instructions-fxa2">', '        <ul hidden>\n          <li data-l10n-id="login-intro-instructions-fxa2">'),
 ]

@@ -25,17 +25,17 @@
       --color-violet-70: #284a3d;
       --color-violet-80: #1d362d;
       --color-violet-90: #121f1a;
-      /* Cinzas do Nium (superfícies e texto) */
-      --color-violet-desaturated-0: #f4f5f4;
-      --color-violet-desaturated-10: #e9ebea;
-      --color-violet-desaturated-20: #d8dcda;
-      --color-violet-desaturated-30: #bcc1bf;
-      --color-violet-desaturated-40: #979d9a;
-      --color-violet-desaturated-50: #6f7572;
-      --color-violet-desaturated-60: #4f5452;
-      --color-violet-desaturated-70: #2c2f2e;
-      --color-violet-desaturated-80: #1f2121;
-      --color-violet-desaturated-90: #161717;
+      /* Cinzas do Nium: areia e petróleo, as cores do site (superfícies e texto) */
+      --color-violet-desaturated-0: #f4f7f1;
+      --color-violet-desaturated-10: #e9ede4;
+      --color-violet-desaturated-20: #d5ddd2;
+      --color-violet-desaturated-30: #b7c3bd;
+      --color-violet-desaturated-40: #91a19b;
+      --color-violet-desaturated-50: #697a75;
+      --color-violet-desaturated-60: #4a5b57;
+      --color-violet-desaturated-70: #22323a;
+      --color-violet-desaturated-80: #17242a;
+      --color-violet-desaturated-90: #0f181c;
       /* Cantos do Nium Electron: 8px em botões e campos, 12px em cartões, menus e janelas.
          (O visual "Nova" do Firefox usa botões em pílula e cantos de 24px.) */
       --border-radius-xsmall: 4px;

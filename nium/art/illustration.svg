@@ -1,9 +1,26 @@
-<!-- Nium: ilustração que substitui os mascotes do Firefox. MPL-2.0 -->
+<!-- Nium: ilustração (a pedra com ondas do site) que substitui os mascotes do Firefox. MPL-2.0 -->
 <svg xmlns="http://www.w3.org/2000/svg" width="200" height="160" viewBox="0 0 200 160" fill="none">
-  <circle cx="44" cy="40" r="10" fill="#9cbfae" opacity=".55"/>
-  <circle cx="162" cy="118" r="14" fill="#9cbfae" opacity=".45"/>
-  <circle cx="158" cy="34" r="5" fill="#77a08c" opacity=".7"/>
-  <circle cx="36" cy="122" r="6" fill="#77a08c" opacity=".6"/>
-  <rect x="58" y="38" width="84" height="84" rx="24" fill="#3f6f5c"/>
-  <path d="M82 102V58l36 44V58" stroke="#e4f1e7" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <style>
+    .w { stroke: #17302a; stroke-opacity: .16; stroke-width: 1.4; }
+    .lens { fill: #f3f6ef; stroke: #ffffff; stroke-width: 1.5; }
+    .shade { fill: #345046; opacity: .18; }
+    .n { stroke: #3f6f5c; }
+    @media (prefers-color-scheme: dark) {
+      .w { stroke: #96c4c2; stroke-opacity: .2; }
+      .lens { fill: #1a2a2f; stroke: rgba(214,236,232,.4); }
+      .shade { fill: #000; opacity: .45; }
+      .n { stroke: #9cbfae; }
+    }
+  </style>
+  <defs>
+    <clipPath id="c"><rect width="200" height="160" rx="24"/></clipPath>
+    <radialGradient id="g" cx=".34" cy=".26" r=".9"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".64" stop-color="#fff" stop-opacity=".06"/></radialGradient>
+    <radialGradient id="fade" cx=".5" cy=".5" r=".55"><stop offset=".6" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+    <mask id="m"><rect width="200" height="160" fill="url(#fade)"/></mask>
+  </defs>
+  <g clip-path="url(#c)" mask="url(#m)"><circle cx="100" cy="80" r="48" class="w" style="opacity:0.94"/><circle cx="100" cy="80" r="56" class="w" style="opacity:0.83"/><circle cx="100" cy="80" r="64" class="w" style="opacity:0.71"/><circle cx="100" cy="80" r="72" class="w" style="opacity:0.60"/><circle cx="100" cy="80" r="80" class="w" style="opacity:0.49"/><circle cx="100" cy="80" r="88" class="w" style="opacity:0.37"/><circle cx="100" cy="80" r="96" class="w" style="opacity:0.26"/><circle cx="100" cy="80" r="104" class="w" style="opacity:0.14"/><circle cx="100" cy="80" r="112" class="w" style="opacity:0.12"/></g>
+  <ellipse class="shade" cx="106" cy="91" rx="38" ry="37"/>
+  <circle class="lens" cx="100" cy="80" r="38"/>
+  <circle cx="100" cy="80" r="38" fill="url(#g)"/>
+  <path class="n" d="M88 94V66l24 28V66" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
