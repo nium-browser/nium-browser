@@ -657,6 +657,8 @@ panel {
 .nium-ai-bar-fill { display: block; height: 100%; width: 0; background: var(--color-accent-primary, #3f6f5c); transition: width .2s; }
 .nium-ai-pull-label { color: var(--nium-muted); }
 .nium-ai-quick { display: flex; flex-direction: column; gap: 8px; }
+.nium-ai-setup > .nium-ai-action { background: var(--nium-surface); }
+.nium-ai-recommended { border-color: color-mix(in srgb, var(--color-accent-primary, #3f6f5c) 60%, transparent) !important; }
 .nium-ai-action {
   justify-content: flex-start !important;
   align-items: flex-start !important;

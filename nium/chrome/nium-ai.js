@@ -50,6 +50,19 @@ var NiumAI = {
       busy: "Wait for the current answer to finish or click Stop.",
       explainMenu: "Explain with Nium AI",
       translateMenu: "Translate with Nium AI",
+      chooseTitle: "Choose how the AI runs",
+      chooseText: "It runs on this computer: what you read never leaves it. The model downloads once.",
+      light: "Light",
+      lightHelp: "Fast, simpler answers. Good for older computers.",
+      standard: "Standard",
+      standardHelp: "Better answers. Needs more memory.",
+      advanced: "Advanced: use Ollama",
+      advancedHelp: "Larger models you install yourself in the free Ollama app.",
+      use: "Use",
+      inBrowser: "in Nium",
+      downloadingLocal: "Downloading the AI model (only the first time)",
+      loadingLocal: "Starting the AI…",
+      engine: "AI",
       errors: {
         OFFLINE: "Ollama is not open on this computer. Install or open Ollama and try again.",
         NO_MODEL: "Choose a local model below.",
@@ -99,6 +112,19 @@ var NiumAI = {
       busy: "Aguarde a resposta atual terminar ou clique em Parar.",
       explainMenu: "Explicar com o Nium AI",
       translateMenu: "Traduzir com o Nium AI",
+      chooseTitle: "Escolha como a IA roda",
+      chooseText: "Ela roda neste computador: o que você lê não sai dele. O modelo é baixado uma vez só.",
+      light: "Leve",
+      lightHelp: "Rápida, respostas mais simples. Boa para computadores mais antigos.",
+      standard: "Padrão",
+      standardHelp: "Respostas melhores. Precisa de mais memória.",
+      advanced: "Avançado: usar o Ollama",
+      advancedHelp: "Modelos maiores que você instala no app gratuito Ollama.",
+      use: "Usar",
+      inBrowser: "no Nium",
+      downloadingLocal: "Baixando o modelo de IA (só na primeira vez)",
+      loadingLocal: "Iniciando a IA…",
+      engine: "IA",
       errors: {
         OFFLINE: "O Ollama não está aberto neste computador. Instale ou abra o Ollama e tente de novo.",
         NO_MODEL: "Escolha um modelo local aqui embaixo.",
@@ -120,6 +146,7 @@ var NiumAI = {
     if (this.lib) return;
     this.lib = ChromeUtils.importESModule("chrome://browser/content/nium/ai/reading-ai.mjs", { global: "current" });
     this.ollama = ChromeUtils.importESModule("chrome://browser/content/nium/ai/ollama.mjs", { global: "current" });
+    this.local = ChromeUtils.importESModule("chrome://browser/content/nium/ai/local.mjs", { global: "current" });
     try {
       ChromeUtils.registerWindowActor("NiumPage", {
         parent: { esModuleURI: "chrome://browser/content/nium/NiumPageParent.sys.mjs" },
@@ -136,6 +163,17 @@ var NiumAI = {
   },
 
   // ---- preferências ----
+  // nium.ai.engine: "local:light" | "local:standard" (no próprio Nium) | "ollama" (modelo em nium.ai.model)
+  get engine() {
+    return Services.prefs.getStringPref("nium.ai.engine", "");
+  },
+  set engine(v) {
+    Services.prefs.setStringPref("nium.ai.engine", v);
+  },
+  get localSize() {
+    const e = this.engine;
+    return e.startsWith("local:") ? e.slice(6) : null;
+  },
   get model() {
     return Services.prefs.getStringPref("nium.ai.model", "");
   },
@@ -153,6 +191,8 @@ var NiumAI = {
   },
 
   ready() {
+    if (this.localSize && this.local.LOCAL_MODELS[this.localSize]) return true;
+    if (this.engine !== "ollama") return false;
     const st = this.S.status;
     return !!(st?.reachable && st.models.length && st.models.includes(this.model));
   },
@@ -279,7 +319,7 @@ var NiumAI = {
       this.flash(t.busy);
       return;
     }
-    await this.refreshStatus();
+    if (this.engine === "ollama") await this.refreshStatus();
     if (!this.ready()) {
       this.rerender();
       return;
@@ -322,15 +362,28 @@ var NiumAI = {
         chosen,
         history,
       });
-      const raw = await this.ollama.chat({
-        model: this.model,
-        messages,
-        signal: controller.signal,
-        onToken: text => {
-          entry.answer = this.lib.cleanAnswer(text);
-          this.updateEntry(entry);
-        },
-      });
+      const onToken = text => {
+        entry.progress = null;
+        entry.answer = this.lib.cleanAnswer(text);
+        this.updateEntry(entry);
+      };
+      let raw;
+      if (this.localSize) {
+        entry.progress = { text: t.loadingLocal };
+        this.updateEntry(entry);
+        raw = await this.local.chat({
+          size: this.localSize,
+          messages,
+          signal: controller.signal,
+          onToken,
+          onDownload: percent => {
+            entry.progress = { text: t.downloadingLocal, percent };
+            this.updateEntry(entry);
+          },
+        });
+      } else {
+        raw = await this.ollama.chat({ model: this.model, messages, signal: controller.signal, onToken });
+      }
       const result = this.lib.citations(raw, chosen);
       Object.assign(entry, { answer: result.answer, citations: result.citations, done: true });
     } catch (e) {
@@ -363,7 +416,7 @@ var NiumAI = {
   // ---- interface no painel ----
   render(body) {
     this.body = body;
-    if (!this.S.status || Date.now() - this.S.checkedAt > 15000) this.refreshStatus();
+    if (this.engine === "ollama" && (!this.S.status || Date.now() - this.S.checkedAt > 15000)) this.refreshStatus();
     this.rerender();
   },
 
@@ -438,10 +491,38 @@ var NiumAI = {
     return out;
   },
 
+  buildChooser() {
+    const t = this.t;
+    const el = NiumSidebar.el.bind(NiumSidebar);
+    const option = (title, size, help, onclick, primary) =>
+      el("button", { class: "nium-ai-action" + (primary ? " nium-ai-recommended" : ""), onclick }, [
+        el("span", {}, [
+          el("strong", { text: size ? `${title} · ${size}` : title }),
+          el("small", { text: help }),
+        ]),
+      ]);
+    const M = this.local.LOCAL_MODELS;
+    return el("div", { class: "nium-ai-setup" }, [
+      el("strong", { text: t.chooseTitle }),
+      el("p", { text: t.chooseText }),
+      option(t.light, M.light.size, t.lightHelp, () => this.choose("local:light")),
+      option(t.standard, M.standard.size, t.standardHelp, () => this.choose("local:standard"), true),
+      option(t.advanced, "", t.advancedHelp, () => this.choose("ollama")),
+    ]);
+  },
+
+  choose(engine) {
+    this.engine = engine;
+    if (engine === "ollama") this.refreshStatus(true);
+    else this.local.dispose();
+    this.rerender();
+  },
+
   buildSetup() {
     const t = this.t;
     const el = NiumSidebar.el.bind(NiumSidebar);
     const icon = NiumSidebar.icon.bind(NiumSidebar);
+    if (!this.engine) return this.buildChooser();
     const st = this.S.status;
     if (!st) return el("div", { class: "nium-ai-setup" }, [el("p", { class: "nium-panel-message", text: t.searching })]);
     if (!st.reachable) {
@@ -525,10 +606,29 @@ var NiumAI = {
       ? el("button", { class: "nium-secondary-button", onclick: () => this.stop() }, [el("span", { text: t.stop })])
       : el("button", { class: "nium-primary-button", onclick: send }, [el("span", { text: t.send })]);
 
+    // Uma lista só: os dois modelos do Nium e, se o Ollama estiver aberto, os modelos dele.
     const modelSelect = el("select", { class: "nium-select", "aria-label": t.model });
-    for (const m of this.S.status.models) modelSelect.append(el("option", { value: m, text: m }));
-    modelSelect.value = this.model;
-    modelSelect.addEventListener("change", () => (this.model = modelSelect.value));
+    const M = this.local.LOCAL_MODELS;
+    modelSelect.append(
+      el("option", { value: "local:light", text: `${t.light} (${t.inBrowser})` }),
+      el("option", { value: "local:standard", text: `${t.standard} (${t.inBrowser})` })
+    );
+    for (const m of this.S.status?.models || []) modelSelect.append(el("option", { value: "ollama:" + m, text: "Ollama · " + m }));
+    if (this.engine === "ollama" && !(this.S.status?.models || []).includes(this.model) && this.model) {
+      modelSelect.append(el("option", { value: "ollama:" + this.model, text: "Ollama · " + this.model }));
+    }
+    modelSelect.value = this.localSize ? this.engine : "ollama:" + this.model;
+    modelSelect.addEventListener("change", () => {
+      const v = modelSelect.value;
+      if (v.startsWith("ollama:")) {
+        this.model = v.slice(7);
+        this.engine = "ollama";
+      } else {
+        this.engine = v;
+        this.local.dispose();
+      }
+    });
+    if (!this.S.status) this.refreshStatus(); // descobre os modelos do Ollama, se ele estiver aberto
     const langSelect = el("select", { class: "nium-select", "aria-label": t.answerIn });
     for (const [v, label] of this.LANGS) langSelect.append(el("option", { value: v, text: label }));
     langSelect.value = this.lang;
@@ -538,7 +638,7 @@ var NiumAI = {
       area,
       el("div", { class: "nium-ai-form-row" }, [el("label", { class: "nium-ai-toggle" }, [use, el("span", { text: t.usePage })]), button]),
       el("div", { class: "nium-ai-foot" }, [
-        el("label", {}, [el("span", { text: t.model }), modelSelect]),
+        el("label", {}, [el("span", { text: t.engine }), modelSelect]),
         el("label", {}, [el("span", { text: t.answerIn }), langSelect]),
       ]),
       el("p", { class: "nium-ai-small", text: t.mayErr }),
@@ -587,7 +687,13 @@ var NiumAI = {
       return;
     }
     if (!entry.answer) {
-      box.append(el("p", { class: "nium-ai-thinking", text: t.thinking }));
+      const p = entry.progress;
+      box.append(el("p", { class: "nium-ai-thinking", text: p ? p.text + (p.percent != null ? ` ${p.percent}%` : "") : t.thinking }));
+      if (p?.percent != null) {
+        const bar = el("span", { class: "nium-ai-bar" }, [el("span", { class: "nium-ai-bar-fill" })]);
+        bar.firstChild.style.width = `${p.percent}%`;
+        box.append(bar);
+      }
       return;
     }
     const byN = new Map((entry.citations || []).map(c => [c.n, c]));

@@ -351,6 +351,10 @@ PATCHES = [
   ('browser/components/tabbrowser/content/opentabs-splitview.css',
    'background: linear-gradient(to bottom, light-dark(#f0ebfd, #332a50) 0%, light-dark(#f1ebf8, #342a47) 95%, transparent 100%);',
    'background: linear-gradient(to bottom, light-dark(#f7f7f8, #1f1f22) 0%, light-dark(#f6f7f7, #1f2121) 95%, transparent 100%); /* Nium */'),
+  # Nium AI no navegador: libera só os dois modelos Leve/Padrão (Qwen2.5 Instruct GGUF) no motor de IA local
+  ('toolkit/components/ml/content/Utils.sys.mjs',
+   '  "https://localhost/",\n];',
+   '  "https://localhost/",\n  // Nium AI: modelos Leve e Padrão (Apache-2.0)\n  "https://huggingface.co/qwen/qwen2.5-0.5b-instruct-gguf/",\n  "https://huggingface.co/qwen/qwen2.5-1.5b-instruct-gguf/",\n];'),
   # about:logins: tira as instruções de sincronizar com conta Mozilla
   ('browser/components/aboutlogins/content/aboutLogins.html', '        <ul>\n          <li data-l10n-id="login-intro-instructions-fxa2">', '        <ul hidden>\n          <li data-l10n-id="login-intro-instructions-fxa2">'),
 ]
