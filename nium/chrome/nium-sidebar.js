@@ -587,7 +587,7 @@ var NiumSidebar = {
             keydown: { capture: true, mozSystemGroup: true },
           },
         },
-        matches: ["http://*/*", "https://*/*", "file:///*", "about:newtab", "about:home"],
+        matches: ["http://*/*", "https://*/*", "file:///*"],
         allFrames: true,
       });
     } catch (e) {
