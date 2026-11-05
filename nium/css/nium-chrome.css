@@ -1513,3 +1513,32 @@ sidebar-main[expanded] .nium-wordmark {
 #tabbrowser-tabs[orient="vertical"] tab-group[collapsed] > .tab-group-overflow-count-container {
   display: none !important;
 }
+
+/* ---- Início (aba sempre fixada): a aba fica escondida da lista; a linha "Início" a mostra ---- */
+.tabbrowser-tab[nium-home] { display: none !important; }
+.nium-home-row {
+  margin-block: 2px 4px;
+  &[selected] {
+    background-color: var(--tab-selected-bgcolor, light-dark(#f7f9f4, #1a282d)) !important;
+    box-shadow: 0 0 0 1px light-dark(rgba(23, 48, 42, .08), rgba(233, 241, 237, .07));
+    font-weight: 600;
+  }
+}
+
+/* ---- Abas fixadas na lateral aberta: quadradinhos compactos lado a lado (não uma faixa
+   larga com o ícone perdido no meio) ---- */
+#tabbrowser-tabs[orient="vertical"][expanded] #pinned-tabs-container::part(items-wrapper) {
+  grid-template-columns: repeat(auto-fill, 40px) !important;
+  justify-content: start !important;
+  column-gap: 4px !important;
+}
+#tabbrowser-tabs[orient="vertical"][expanded] #pinned-tabs-container > .tabbrowser-tab[pinned] {
+  width: 40px !important;
+  min-width: 40px !important;
+  max-width: 40px !important;
+  .tab-background { border-radius: 10px !important; }
+}
+/* Sem abas fixadas além do Início (que fica escondido), a área das fixadas some */
+#pinned-tabs-container:not(:has(> .tabbrowser-tab:not([nium-home]))) {
+  display: none !important;
+}

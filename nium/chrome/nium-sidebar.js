@@ -21,6 +21,7 @@ var NiumSidebar = {
       personalSpace: "Personal space",
       searchTabs: "Search tabs",
       yourTabs: "Your tabs",
+      home: "Home",
       shield: "Nium Shield",
       shieldTitle: "Tracker and pop-up protection",
       yourSpace: "Your space",
@@ -89,6 +90,7 @@ var NiumSidebar = {
       personalSpace: "Espaço pessoal",
       searchTabs: "Buscar nas abas",
       yourTabs: "Suas abas",
+      home: "Início",
       shield: "Nium Shield",
       shieldTitle: "Proteção contra rastreadores e pop-ups",
       yourSpace: "Seu espaço",
@@ -182,6 +184,7 @@ var NiumSidebar = {
     this.watchTabClose();
     this.watchTint();
     this.createZoomChip();
+    this.setupHome();
     this.takeOverSearchKey();
     this.registerActors();
     this.createSplitButton();
@@ -394,6 +397,96 @@ var NiumSidebar = {
     update();
   },
 
+  // ---- Início: uma aba que SEMPRE existe, fixada e separada das outras ----
+  // É uma aba de verdade (com a nova aba do Nium), fixada e escondida da lista de abas; quem a
+  // mostra é a linha "Início" da lateral, com a casinha. Se for fechada ou desafixada, volta.
+  // O Firefox guarda a marca dela na sessão, então ela continua sendo o Início ao reabrir.
+  HOME_KEY: "niumHome",
+  HOME_URL: "about:home",
+
+  async setupHome() {
+    try {
+      const { SessionStore } = ChromeUtils.importESModule("resource:///modules/sessionstore/SessionStore.sys.mjs");
+      this.SS = SessionStore;
+      await SessionStore.promiseAllWindowsRestored;
+    } catch (e) {}
+    if (window.closed) return;
+    const isHome = tab => {
+      try {
+        return this.SS?.getCustomTabValue(tab, this.HOME_KEY) === "1";
+      } catch (e) {
+        return false;
+      }
+    };
+    const found = gBrowser.tabs.filter(isHome);
+    this.homeTab = found[0] || this.createHome();
+    this.markHome(this.homeTab);
+    // Se a sessão trouxe mais de um Início (janelas juntadas), os outros viram abas normais.
+    for (const extra of found.slice(1)) {
+      extra.removeAttribute("nium-home");
+      try {
+        this.SS.deleteCustomTabValue(extra, this.HOME_KEY);
+      } catch (e) {}
+    }
+    const container = gBrowser.tabContainer;
+    container.addEventListener("TabSelect", () => this.updateHomeRow());
+    container.addEventListener("TabClose", e => {
+      if (e.target !== this.homeTab) return;
+      this.homeTab = null;
+      setTimeout(() => {
+        if (window.closed || this.homeTab) return;
+        this.homeTab = this.createHome();
+        this.markHome(this.homeTab);
+        this.updateHomeRow();
+      }, 0);
+    });
+    container.addEventListener("TabUnpinned", e => {
+      if (e.target === this.homeTab) gBrowser.pinTab(this.homeTab);
+    });
+    this.updateHomeRow();
+  },
+
+  createHome() {
+    const tab = gBrowser.addTrustedTab(this.HOME_URL, { inBackground: true, skipAnimation: true });
+    gBrowser.pinTab(tab);
+    try {
+      gBrowser.moveTabTo(tab, { tabIndex: 0 });
+    } catch (e) {
+      try {
+        gBrowser.moveTabTo(tab, 0);
+      } catch (e2) {}
+    }
+    return tab;
+  },
+
+  markHome(tab) {
+    tab.setAttribute("nium-home", "true");
+    try {
+      this.SS?.setCustomTabValue(tab, this.HOME_KEY, "1");
+    } catch (e) {}
+  },
+
+  goHome() {
+    if (!this.homeTab || !this.homeTab.isConnected) {
+      this.homeTab = this.createHome();
+      this.markHome(this.homeTab);
+    }
+    if (gBrowser.selectedTab === this.homeTab) {
+      // Já no Início: volta para a página inicial (se tiver navegado para outro lugar)
+      const spec = this.homeTab.linkedBrowser.currentURI?.spec || "";
+      if (!/^about:(home|newtab)/.test(spec)) {
+        this.homeTab.linkedBrowser.fixupAndLoadURIString(this.HOME_URL, { triggeringPrincipal: Services.scriptSecurityManager.getSystemPrincipal() });
+      }
+    } else {
+      gBrowser.selectedTab = this.homeTab;
+    }
+    this.updateHomeRow();
+  },
+
+  updateHomeRow() {
+    this.homeRow?.toggleAttribute("selected", !!this.homeTab && gBrowser.selectedTab === this.homeTab);
+  },
+
   watchTabClose() {
     const container = gBrowser.tabContainer;
     container.addEventListener("TabClose", event => {
@@ -543,8 +636,14 @@ var NiumSidebar = {
     );
     this.spacesButton = picker;
     const search = this.buildSearch();
+    // Início: a aba que fica sempre fixada, separada das outras (ver setupHome)
+    this.homeRow = this.el(
+      "button",
+      { class: "nium-sb-row nium-home-row", title: t.home, onclick: () => this.goHome() },
+      [this.icon("chrome://browser/content/nium/icons/home.svg"), this.el("span", { class: "nium-sb-text", text: t.home })]
+    );
     const label = this.el("div", { class: "nium-section-label", text: t.yourTabs });
-    return this.el("div", { id: "nium-sidebar-top", class: "nium-sb-block" }, [brand, picker, search, label]);
+    return this.el("div", { id: "nium-sidebar-top", class: "nium-sb-block" }, [brand, picker, search, this.homeRow, label]);
   },
 
   // ---- rodapé: Nium Shield e Seu espaço ----
