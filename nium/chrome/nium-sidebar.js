@@ -43,6 +43,9 @@ var NiumSidebar = {
       openShortcuts: "Keyboard shortcuts",
       openAddons: "Extensions and themes",
       openWelcome: "Show the welcome again",
+      zoomOut: "Zoom out",
+      zoomIn: "Zoom in",
+      zoomReset: "Reset",
       gesturesLabel: "Mouse gestures",
       gesturesHelp: "Hold the right button, drag and release: ← back, → forward, ↑ new tab, ↓ reload, ↓→ close tab, ↑→ next tab, ↑← previous tab.",
       readingList: "Reading list",
@@ -108,6 +111,9 @@ var NiumSidebar = {
       openShortcuts: "Atalhos de teclado",
       openAddons: "Extensões e temas",
       openWelcome: "Rever as boas-vindas",
+      zoomOut: "Diminuir",
+      zoomIn: "Aumentar",
+      zoomReset: "Redefinir",
       gesturesLabel: "Gestos do mouse",
       gesturesHelp: "Segure o botão direito, arraste e solte: ← voltar, → avançar, ↑ nova aba, ↓ recarregar, ↓→ fechar aba, ↑→ próxima aba, ↑← aba anterior.",
       readingList: "Lista de leitura",
@@ -175,6 +181,7 @@ var NiumSidebar = {
     this.watchLoading();
     this.watchTabClose();
     this.watchTint();
+    this.createZoomChip();
     this.takeOverSearchKey();
     this.registerActors();
     this.createSplitButton();
@@ -338,6 +345,53 @@ var NiumSidebar = {
     Services.prefs.addObserver("nium.tint.enabled", this._tintPrefObserver);
     window.addEventListener("unload", () => Services.prefs.removeObserver("nium.tint.enabled", this._tintPrefObserver), { once: true });
     current();
+  },
+
+  // ---- Zoom: fora da barra de endereço, num selo de vidro no canto da página ----
+  // Aparece quando a página não está em 100%; com o mouse em cima, mostra − / + / 100%.
+  createZoomChip() {
+    const t = this.t;
+    const box = document.getElementById("tabbrowser-tabbox");
+    if (!box || typeof ZoomManager === "undefined") return;
+    const label = this.el("span", { class: "nium-zoom-value" });
+    const btn = (cls, text, title, fn) =>
+      this.el("button", { class: "nium-zoom-btn " + cls, text, title, onclick: e => { e.stopPropagation(); fn(); } });
+    const chip = this.el("div", { id: "nium-zoom", hidden: "true", role: "group", "aria-label": "Zoom" }, [
+      btn("nium-zoom-out", "−", t.zoomOut, () => FullZoom.reduce()),
+      label,
+      btn("nium-zoom-in", "+", t.zoomIn, () => FullZoom.enlarge()),
+      btn("nium-zoom-reset", t.zoomReset, t.zoomReset, () => FullZoom.reset()),
+    ]);
+    box.append(chip);
+    let last = null;
+    const update = () => {
+      let z = 1;
+      try {
+        z = ZoomManager.getZoomForBrowser(gBrowser.selectedBrowser);
+      } catch (e) {}
+      const pct = Math.round(z * 100);
+      label.textContent = `${pct}%`;
+      const show = pct !== 100;
+      if (show) chip.removeAttribute("hidden");
+      else chip.setAttribute("hidden", "true");
+      if (show && last !== null && last !== pct) {
+        chip.classList.remove("nium-zoom-bump");
+        void chip.offsetWidth;
+        chip.classList.add("nium-zoom-bump");
+      }
+      last = pct;
+    };
+    window.addEventListener("FullZoomChange", update);
+    window.addEventListener("TextZoomChange", update);
+    gBrowser.tabContainer.addEventListener("TabSelect", () => {
+      last = null;
+      update();
+    });
+    gBrowser.addProgressListener((this._zoomListener = {
+      onLocationChange: () => setTimeout(update, 50),
+      QueryInterface: ChromeUtils.generateQI(["nsIWebProgressListener", "nsISupportsWeakReference"]),
+    }));
+    update();
   },
 
   watchTabClose() {

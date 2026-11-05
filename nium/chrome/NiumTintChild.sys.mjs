@@ -4,6 +4,26 @@
  * página. Só lê; nada sai do computador. Desligado em "Seu Nium" (nium.tint.enabled).
  */
 
+const opaque = c => c && c !== "transparent" && !/rgba\([^)]*,\s*0(\.0+)?\)$/.test(c);
+
+// A cor que aparece no topo da página (onde ela encosta na barra): sobe a partir do que está
+// no topo até achar um fundo pintado. Sem nenhum, é o fundo do próprio navegador (branco, ou
+// escuro se a página pede tema escuro).
+function topColor(win, doc) {
+  const w = win.innerWidth || 0;
+  for (const x of [w / 2, 12, w - 24]) {
+    let el = doc.elementFromPoint?.(Math.max(0, x), 4);
+    while (el && el.nodeType === 1) {
+      const bg = win.getComputedStyle(el).backgroundColor;
+      if (opaque(bg)) return bg;
+      el = el.parentElement;
+    }
+  }
+  const scheme = win.getComputedStyle(doc.documentElement).colorScheme || "";
+  const dark = /dark/.test(scheme) && (!/light/.test(scheme) || win.matchMedia("(prefers-color-scheme: dark)").matches);
+  return dark ? "#1c1b22" : "#ffffff";
+}
+
 export class NiumTintChild extends JSWindowActorChild {
   handleEvent() {
     if (!Services.prefs.getBoolPref("nium.tint.enabled", true)) return;
@@ -20,16 +40,7 @@ export class NiumTintChild extends JSWindowActorChild {
           break;
         }
       }
-      if (!color) {
-        for (const el of [doc.body, doc.documentElement]) {
-          if (!el) continue;
-          const bg = win.getComputedStyle(el).backgroundColor;
-          if (bg && bg !== "transparent" && !/rgba\([^)]*,\s*0\)$/.test(bg)) {
-            color = bg;
-            break;
-          }
-        }
-      }
+      if (!color) color = topColor(win, doc);
     } catch (e) {}
     this.sendAsyncMessage("Nium:Tint", { color: color ? String(color).slice(0, 64) : null });
   }

@@ -1400,7 +1400,7 @@ sidebar-main:not([expanded]) .tabbrowser-tab .tab-content { position: relative; 
 }
 :root[nium-tint] {
   --nium-tint: var(--nium-base);
-  --nium-frame: color-mix(in srgb, var(--nium-tint) 24%, var(--nium-base));
+  --nium-frame: color-mix(in srgb, var(--nium-tint) 30%, var(--nium-base));
   transition: --nium-tint .6s var(--nium-ease);
 }
 @media not (-moz-windows-mica) {
@@ -1416,7 +1416,7 @@ sidebar-main:not([expanded]) .tabbrowser-tab .tab-content { position: relative; 
 }
 @media (-moz-windows-mica) {
   :root[nium-tint]:not([inDOMFullscreen], [inFullscreen], [privatebrowsingmode]) {
-    --nium-glass: color-mix(in srgb, var(--nium-tint) 24%, light-dark(rgba(227, 232, 222, .78), rgba(12, 20, 23, .8)));
+    --nium-glass: color-mix(in srgb, var(--nium-tint) 30%, light-dark(rgba(227, 232, 222, .78), rgba(12, 20, 23, .8)));
   }
   /* O canto de cima da lateral (onde fica o logo) leva o mesmo vidro tingido: antes
      aparecia o vidro do Windows puro, um quadrado mais claro. */
@@ -1438,4 +1438,65 @@ sidebar-main:not([expanded]) .tabbrowser-tab .tab-content { position: relative; 
     border-end-end-radius: 12px;
     background: light-dark(#f1f4ee, #283135);
   }
+}
+
+/* ---- Zoom fora da barra: o "80%" sai da barra de endereço e vira um selo de vidro no
+   canto de cima da página; com o mouse em cima abre − / + / Redefinir ---- */
+#urlbar-zoom-button { display: none !important; }
+#tabbrowser-tabbox { position: relative; }
+#nium-zoom {
+  position: absolute;
+  top: 10px;
+  inset-inline-end: 14px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: light-dark(#17302a, #e9f1ed);
+  background: light-dark(rgba(244, 247, 241, .82), rgba(20, 32, 36, .82));
+  backdrop-filter: blur(14px) saturate(1.2);
+  box-shadow: inset 1px 1.5px 1px light-dark(rgba(255, 255, 255, .9), rgba(214, 236, 232, .14)), 0 0 0 1px light-dark(rgba(23, 48, 42, .1), rgba(233, 241, 237, .1)), 0 10px 24px -12px rgba(0, 0, 0, .5);
+  animation: nium-zoom-in .28s var(--nium-spring, ease) both;
+  transition: padding .2s var(--nium-ease, ease);
+  &[hidden] { display: none; }
+  &.nium-zoom-bump { animation: nium-zoom-bump .32s var(--nium-spring, ease); }
+  .nium-zoom-btn {
+    appearance: none;
+    display: none;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    margin: 0;
+    border: 0;
+    border-radius: 999px;
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-weight: 500;
+    &:hover { background: light-dark(rgba(23, 48, 42, .08), rgba(233, 241, 237, .1)); }
+  }
+  .nium-zoom-value { min-width: 34px; text-align: center; }
+  &:hover { padding: 0 4px; }
+  &:hover .nium-zoom-btn { display: block; }
+  .nium-zoom-reset { margin-inline-start: 4px; font-size: 11.5px; }
+}
+@keyframes nium-zoom-in { from { opacity: 0; transform: translateY(-6px) scale(.94); } }
+@keyframes nium-zoom-bump { 40% { transform: scale(1.08); } }
+
+/* ---- Nome "nium." aparece ao abrir a lateral (Ctrl+B): desliza e se revela ---- */
+sidebar-main[expanded] .nium-wordmark {
+  animation: nium-word-in .42s var(--nium-ease, ease) .06s both;
+}
+@keyframes nium-word-in {
+  from { opacity: 0; clip-path: inset(0 100% 0 0); transform: translateX(-6px); }
+  to { opacity: 1; clip-path: inset(0 0 0 0); transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  sidebar-main[expanded] .nium-wordmark, #nium-zoom { animation: none !important; }
 }
