@@ -635,6 +635,7 @@ var NiumSidebar = {
         this.SS.deleteCustomTabValue(extra, this.HOME_KEY);
       } catch (e) {}
     }
+    this.replaceStartupTab();
     const container = gBrowser.tabContainer;
     container.addEventListener("TabSelect", () => this.updateHomeRow());
     container.addEventListener("TabClose", e => {
@@ -650,6 +651,20 @@ var NiumSidebar = {
     container.addEventListener("TabUnpinned", e => {
       if (e.target === this.homeTab) gBrowser.pinTab(this.homeTab);
     });
+    this.updateHomeRow();
+  },
+
+  // Ao abrir o Nium (ou uma janela nova), se a única outra aba for uma nova aba vazia criada
+  // na abertura, ela sai e fica só o Início. Abas de sites, restauradas ou com histórico ficam.
+  replaceStartupTab() {
+    const others = gBrowser.tabs.filter(t => t !== this.homeTab && !t.pinned);
+    if (others.length !== 1) return;
+    const tab = others[0];
+    const browser = tab.linkedBrowser;
+    const spec = browser?.currentURI?.spec || "";
+    if (tab.hasAttribute("pending") || browser?.canGoBack || !/^about:(newtab|home|blank)$/.test(spec)) return;
+    gBrowser.selectedTab = this.homeTab;
+    gBrowser.removeTab(tab, { animate: false, skipPermitUnload: true });
     this.updateHomeRow();
   },
 
