@@ -264,7 +264,7 @@ sidebar-main:not([expanded]) > .nium-sb-block {
   flex-direction: column;
   flex: none;
   /* A lateral do Firefox numera a ordem dos itens da janela; o painel fica sempre por último (à direita). */
-  order: 1000 !important;
+  order: var(--nium-panel-order, 1000) !important;
   width: 368px;
   margin: 0 8px 8px 8px;
   border-radius: 12px;
@@ -1586,7 +1586,6 @@ findbar:not([hidden]) { animation: nium-fade-up .22s var(--nium-ease); }
 sidebar-main {
   max-width: 380px !important;
 }
-#sidebar-main[expanded], sidebar-main[expanded] { min-width: 200px !important; }
 /* Recolhida: tudo no mesmo eixo, no centro da lateral */
 sidebar-main:not([expanded]) > .nium-sb-block {
   button { gap: 0 !important; margin-inline: auto; }
@@ -1623,4 +1622,22 @@ sidebar-main:not([expanded]) > .nium-sb-block {
 .nium-brand::before {
   background: var(--nium-selected) !important;
   transition: background-color .5s var(--nium-ease);
+}
+
+/* ---- Lateral à direita: tudo espelhado (6/11) ---- */
+:root[nium-sidebar-end] {
+  #tabbrowser-tabbox { margin: 0 0 6px 6px !important; }
+  .nium-brand::before { inset: 4px 0 !important; border-radius: 10px !important; }
+  #nium-panel { order: var(--nium-panel-order, 0) !important; }
+}
+
+/* ---- Lateral estreita: nada cortado nem sobreposto ---- */
+.nium-sb-block { container-type: inline-size; min-width: 0; }
+.nium-sb-text, .nium-wordmark { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@container (max-width: 170px) {
+  .nium-sb-block kbd { display: none !important; }
+  .nium-sb-row > .nium-sb-icon:last-child:not(:first-child) { display: none; }
+}
+@container (max-width: 130px) {
+  .nium-section-label { font-size: 10px; letter-spacing: .04em; }
 }

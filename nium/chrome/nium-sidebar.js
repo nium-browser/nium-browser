@@ -517,6 +517,7 @@ var NiumSidebar = {
   // Abre "Seu Nium" nas configurações (reaproveita a aba de configurações se já existir;
   // openPreferences falhava com a aba de configurações adormecida).
   openSettings() {
+    this.closePanel();
     const url = "about:preferences#nium";
     try {
       switchToTabHavingURI(url, true, { ignoreFragment: "whenComparingAndReplace", triggeringPrincipal: Services.scriptSecurityManager.getSystemPrincipal() });
@@ -796,6 +797,16 @@ var NiumSidebar = {
         !container.hasAttribute("sidebar-positionend") &&
         Services.prefs.getBoolPref("sidebar.verticalTabs", false);
       root.toggleAttribute("nium-sidebar-top", on);
+      // Lateral à direita: a página, a borda e o painel se espelham (ver nium-chrome.css)
+      const end = container.hasAttribute("sidebar-positionend") || !Services.prefs.getBoolPref("sidebar.position_start", true);
+      root.toggleAttribute("nium-sidebar-end", end);
+      // O painel (espaços, notas, seu espaço…) fica logo depois da página: com a lateral à
+      // direita, entre a página e a lateral; à esquerda, na ponta direita.
+      try {
+        const tabbox = document.getElementById("tabbrowser-tabbox");
+        const order = parseInt(getComputedStyle(tabbox).order) || 0;
+        root.style.setProperty("--nium-panel-order", end ? String(order) : "1000");
+      } catch (e) {}
       if (on) {
         root.style.setProperty("--nium-sidebar-width", `${Math.round(container.getBoundingClientRect().width)}px`);
       }
@@ -809,6 +820,8 @@ var NiumSidebar = {
       attributes: true,
       attributeFilter: ["hidden", "sidebar-positionend"],
     });
+    Services.prefs.addObserver("sidebar.position_start", update);
+    window.addEventListener("unload", () => Services.prefs.removeObserver("sidebar.position_start", update), { once: true });
     update();
   },
 
