@@ -45,7 +45,6 @@ addon-card .card,
   margin-bottom: 14px !important;
 }
 #niumPane .nium-pref-group { border-top: 1px solid var(--nium-card-edge) !important; }
-.main-content { padding-top: 32px !important; }
 .pane-container { max-width: 760px !important; }
 #searchInput, moz-input-search, .search-box {
   --input-border-radius: 10px !important;
@@ -58,3 +57,11 @@ button, select, moz-toggle, .card, groupbox, setting-group {
   animation: nium-pref-in .32s cubic-bezier(.2, .8, .2, 1) both;
 }
 @keyframes nium-pref-in { from { opacity: 0; transform: translateY(4px); } }
+/* Cabeçalho fixo (busca) e menu da esquerda com fundo sólido: o conteúdo não aparece por trás ao rolar */
+#search-container,
+.sticky-container,
+.sticky-inner-container,
+#categories,
+moz-page-nav {
+  background-color: var(--nium-sand) !important;
+}

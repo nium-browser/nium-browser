@@ -344,6 +344,15 @@ var NiumSidebar = {
     const rgb = on && color ? this.parseColor(color) : null;
     if (rgb) root.style.setProperty("--nium-tint", rgb);
     else root.style.removeProperty("--nium-tint");
+    // Tom da moldura (clara ou escura): decide o quanto a aba ativa clareia
+    try {
+      const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const base = dark ? [12, 20, 23] : [227, 232, 222];
+      const tint = rgb ? rgb.match(/\d+/g).map(Number) : base;
+      const mix = base.map((b, i) => 0.3 * tint[i] + 0.7 * b);
+      const lum = (0.2126 * mix[0] + 0.7152 * mix[1] + 0.0722 * mix[2]) / 255;
+      root.setAttribute("nium-tone", lum > 0.5 ? "light" : "dark");
+    } catch (e) {}
   },
 
   // Pergunta a cor da aba atual: primeiro à página (theme-color/fundo); se não der, tira um
@@ -523,41 +532,74 @@ var NiumSidebar = {
     const container = gBrowser.tabContainer;
     const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const ease = "cubic-bezier(.2, .8, .2, 1)";
+    const visible = el => el.getBoundingClientRect().height > 0;
     const after = group =>
       [...container.querySelectorAll(".tabbrowser-tab, .tab-group-label-container")].filter(
-        el => !group.contains(el) && group.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING && el.getBoundingClientRect().height
+        el => !group.contains(el) && group.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING && visible(el)
       );
-    const tabStep = () => {
-      const any = container.querySelector(".tabbrowser-tab:not([pinned])");
-      const h = any?.getBoundingClientRect().height || 36;
-      return h;
+    const groupTabs = group => [...group.querySelectorAll(":scope > .tabbrowser-tab")].filter(visible);
+    const span = tabs => {
+      if (!tabs.length) return 0;
+      const first = tabs[0].getBoundingClientRect();
+      const last = tabs.at(-1).getBoundingClientRect();
+      return last.bottom - first.top;
     };
-    const slide = (els, dy) => {
-      for (const el of els) el.animate([{ transform: `translateY(${dy}px)` }, { transform: "none" }], { duration: 260, easing: ease });
-    };
+
+    // Fechar: as abas do grupo saem (de baixo para cima) enquanto as de baixo sobem; só no
+    // fim o grupo fecha de verdade. (Clicar no nome do grupo; o teclado fecha na hora.)
+    container.addEventListener(
+      "click",
+      e => {
+        const label = e.target.closest?.(".tab-group-label");
+        const group = label?.closest("tab-group");
+        if (!group || group.collapsed || group._niumBusy || !container.verticalMode || reduced() || e.button !== 0) return;
+        const tabs = groupTabs(group);
+        if (!tabs.length) return;
+        e.stopPropagation();
+        e.preventDefault();
+        group._niumBusy = true;
+        const height = span(tabs) + 4;
+        const below = after(group);
+        const out = tabs.map((tab, i) =>
+          tab.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(-8px) scale(.97)" }], {
+            duration: 200,
+            delay: (tabs.length - 1 - i) * 22,
+            easing: "cubic-bezier(.4, 0, .6, 1)",
+            fill: "forwards",
+          })
+        );
+        const moves = below.map(el =>
+          el.animate([{ transform: "none" }, { transform: `translateY(${-height}px)` }], { duration: 260, easing: ease, fill: "forwards" })
+        );
+        Promise.all([...out, ...moves].map(a => a.finished.catch(() => {}))).then(() => {
+          group.collapsed = true;
+          for (const a of [...out, ...moves]) a.cancel();
+          group._niumBusy = false;
+          label.animate([{ transform: "scale(.95)" }, { transform: "none" }], { duration: 240, easing: "cubic-bezier(.3, 1.3, .5, 1)" });
+        });
+      },
+      true
+    );
+
+    // Abrir: as abas entram em cascata e as de baixo descem para o novo lugar.
     container.addEventListener("TabGroupExpand", e => {
       if (!container.verticalMode || reduced()) return;
       const group = e.target;
       requestAnimationFrame(() => {
-        const tabs = [...group.querySelectorAll(":scope > .tabbrowser-tab")];
+        const tabs = groupTabs(group);
         tabs.forEach((tab, i) =>
-          tab.animate([{ opacity: 0, transform: "translateY(-6px)" }, { opacity: 1, transform: "none" }], {
-            duration: 220,
-            delay: i * 30,
+          tab.animate([{ opacity: 0, transform: "translateY(-8px) scale(.97)" }, { opacity: 1, transform: "none" }], {
+            duration: 260,
+            delay: 40 + i * 28,
             easing: ease,
             fill: "backwards",
           })
         );
-        slide(after(group), -tabs.length * tabStep());
+        const height = span(tabs) + 4;
+        for (const el of after(group)) {
+          el.animate([{ transform: `translateY(${-height}px)` }, { transform: "none" }], { duration: 300, easing: ease });
+        }
       });
-    });
-    container.addEventListener("TabGroupCollapse", e => {
-      if (!container.verticalMode || reduced()) return;
-      const group = e.target;
-      const count = group.querySelectorAll(":scope > .tabbrowser-tab").length;
-      requestAnimationFrame(() => slide(after(group), count * tabStep()));
-      // O nome do grupo dá um leve "assentar"
-      group.querySelector(".tab-group-label")?.animate([{ transform: "scale(.94)" }, { transform: "none" }], { duration: 220, easing: ease });
     });
   },
 

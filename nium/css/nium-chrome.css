@@ -1598,13 +1598,23 @@ sidebar-main:not([expanded]) > .nium-sb-block {
 .nium-sb-block .nium-sb-icon { width: 16px; height: 16px; flex: none; }
 .nium-home-row > .nium-sb-icon { width: 18px !important; height: 18px !important; }
 
-/* ---- Seleção da aba e bloco do logo com a cor da página (6/11) ---- */
+/* ---- Seleção da aba e bloco do logo com a cor da página (6/11) ----
+   A aba ativa é a moldura (já com a cor do site) um pouco mais clara para se destacar:
+   moldura escura → só um toque mais clara; moldura clara → bem mais clara (quase branca). */
 :root {
   --nium-selected: light-dark(#f7f9f4, #1a282d);
 }
 :root[nium-tint] {
-  --nium-selected: color-mix(in srgb, var(--nium-tint) 22%, light-dark(#f7f9f4, #1d2c31));
+  --nium-frame-solid: color-mix(in srgb, var(--nium-tint) 30%, var(--nium-base));
+  --nium-selected: color-mix(in srgb, var(--nium-frame-solid) 84%, white);
   --tab-selected-bgcolor: var(--nium-selected) !important;
+  --lwt-selected-tab-background-color: var(--nium-selected) !important;
+}
+:root[nium-tint][nium-tone="light"] {
+  --nium-selected: color-mix(in srgb, var(--nium-frame-solid) 42%, white);
+}
+:root[nium-tint] .tabbrowser-tab:is([selected], [multiselected]) > .tab-stack > .tab-background {
+  background-color: var(--nium-selected) !important;
 }
 .tabbrowser-tab[selected] .tab-background,
 .nium-home-row[selected] {
