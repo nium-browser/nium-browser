@@ -289,21 +289,25 @@ var NiumWelcome = {
     this.tourTitle.textContent = t.tourTitle;
     this.tourLead.textContent = t.tourLead;
     const leads = { look: t.lookText, search: t.searchText, privacy: t.privacyText, ai: t.aiText, access: t.accessText };
-    const items = this.STEPS.slice(1, -1).map((stepName, k) => {
-      const index = k + 1;
-      const on = index === this.step;
-      const tab = el("button", { class: "nw-tour-tab", role: "tab", "aria-selected": String(on) }, [
-        el("strong", { text: t.titles[index] }),
-        el("span", { class: "nw-tour-more" }, [el("span", { text: leads[stepName] })]),
-      ]);
-      tab.addEventListener("click", () => {
-        this.dir = index > this.step ? 1 : -1;
-        this.step = index;
-        this.paint();
+    if (this.tourList.childElementCount !== this.STEPS.length - 2 || this.tourLang !== t) {
+      this.tourLang = t;
+      const items = this.STEPS.slice(1, -1).map((stepName, k) => {
+        const index = k + 1;
+        const tab = el("button", { class: "nw-tour-tab", role: "tab", "aria-selected": "false" }, [
+          el("strong", { text: t.titles[index] }),
+          el("span", { class: "nw-tour-more" }, [el("span", { text: leads[stepName] })]),
+        ]);
+        tab.addEventListener("click", () => {
+          if (index === this.step) return;
+          this.dir = index > this.step ? 1 : -1;
+          this.step = index;
+          this.paint();
+        });
+        return tab;
       });
-      return tab;
-    });
-    this.tourList.replaceChildren(...items);
+      this.tourList.replaceChildren(...items);
+    }
+    [...this.tourList.children].forEach((tab, k) => tab.setAttribute("aria-selected", String(k + 1 === this.step)));
     this.backBtn.textContent = t.back;
     this.nextBtn.textContent = t.next;
     // Cada pintura tem um número: se outra começou depois (clique rápido), esta desiste.
@@ -316,10 +320,31 @@ var NiumWelcome = {
       parts = [el("p", { class: "nw-hint", text: leads[name] || "" })];
     }
     if (token !== this.paintToken || this.STEPS[this.step] !== name) return;
+    const plate = this.body.parentElement;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const ease = "cubic-bezier(.2, .8, .2, 1)";
+    if (this.body.childElementCount && !reduced) {
+      // sai: desliza um pouco para o lado oposto e some
+      await this.body
+        .animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: `translateX(${this.dir < 0 ? 12 : -12}px)` }], {
+          duration: 140,
+          easing: "cubic-bezier(.4, 0, 1, 1)",
+          fill: "forwards",
+        })
+        .finished.catch(() => {});
+      if (token !== this.paintToken) return;
+    }
+    const before = plate.getBoundingClientRect().height;
+    this.body.getAnimations().forEach(a => a.cancel());
     this.body.classList.remove("nw-in-next", "nw-in-back");
     this.body.replaceChildren(...parts);
     void this.body.offsetWidth;
     this.body.classList.add(this.dir < 0 ? "nw-in-back" : "nw-in-next");
+    // o painel de vidro cresce ou encolhe até a nova altura
+    const after = plate.getBoundingClientRect().height;
+    if (!reduced && before && Math.abs(after - before) > 2) {
+      plate.animate([{ height: `${before}px` }, { height: `${after}px` }], { duration: 320, easing: ease });
+    }
   },
 
   // ---- peças ----
@@ -331,9 +356,19 @@ var NiumWelcome = {
     ]);
     b.addEventListener("click", async () => {
       await onclick();
-      this.paint();
+      this.select(b);
     });
     return b;
+  },
+
+  // Marca a opção escolhida no próprio grupo (sem redesenhar o passo, para não piscar)
+  select(button) {
+    for (const sib of button.parentElement?.children || []) {
+      const on = sib === button;
+      sib.classList.toggle("on", on);
+      sib.setAttribute("aria-pressed", String(on));
+    }
+    button.animate([{ transform: "scale(.97)" }, { transform: "none" }], { duration: 260, easing: "cubic-bezier(.3, 1.3, .5, 1)" });
   },
 
   toggle(title, help, checked, onchange) {
@@ -516,7 +551,7 @@ var NiumWelcome = {
           b.addEventListener("click", () => {
             if (size === 100) prefs.clearUserPref("ui.textScaleFactor");
             else prefs.setIntPref("ui.textScaleFactor", size);
-            this.paint();
+            this.select(b);
           });
           return b;
         })

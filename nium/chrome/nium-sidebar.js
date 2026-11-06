@@ -185,6 +185,7 @@ var NiumSidebar = {
     this.watchTint();
     this.createZoomChip();
     this.setupHome();
+    this.watchGroups();
     this.takeOverSearchKey();
     this.registerActors();
     this.createSplitButton();
@@ -513,6 +514,51 @@ var NiumSidebar = {
     } catch (e) {
       openTrustedLinkIn(url, "tab");
     }
+  },
+
+  // ---- Grupos de abas: abrir e fechar com animação ----
+  // As abas do grupo entram uma a uma (abrir); as que vêm depois do grupo deslizam para o
+  // novo lugar (abrir e fechar), em vez de pularem de uma vez.
+  watchGroups() {
+    const container = gBrowser.tabContainer;
+    const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const ease = "cubic-bezier(.2, .8, .2, 1)";
+    const after = group =>
+      [...container.querySelectorAll(".tabbrowser-tab, .tab-group-label-container")].filter(
+        el => !group.contains(el) && group.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING && el.getBoundingClientRect().height
+      );
+    const tabStep = () => {
+      const any = container.querySelector(".tabbrowser-tab:not([pinned])");
+      const h = any?.getBoundingClientRect().height || 36;
+      return h;
+    };
+    const slide = (els, dy) => {
+      for (const el of els) el.animate([{ transform: `translateY(${dy}px)` }, { transform: "none" }], { duration: 260, easing: ease });
+    };
+    container.addEventListener("TabGroupExpand", e => {
+      if (!container.verticalMode || reduced()) return;
+      const group = e.target;
+      requestAnimationFrame(() => {
+        const tabs = [...group.querySelectorAll(":scope > .tabbrowser-tab")];
+        tabs.forEach((tab, i) =>
+          tab.animate([{ opacity: 0, transform: "translateY(-6px)" }, { opacity: 1, transform: "none" }], {
+            duration: 220,
+            delay: i * 30,
+            easing: ease,
+            fill: "backwards",
+          })
+        );
+        slide(after(group), -tabs.length * tabStep());
+      });
+    });
+    container.addEventListener("TabGroupCollapse", e => {
+      if (!container.verticalMode || reduced()) return;
+      const group = e.target;
+      const count = group.querySelectorAll(":scope > .tabbrowser-tab").length;
+      requestAnimationFrame(() => slide(after(group), count * tabStep()));
+      // O nome do grupo dá um leve "assentar"
+      group.querySelector(".tab-group-label")?.animate([{ transform: "scale(.94)" }, { transform: "none" }], { duration: 220, easing: ease });
+    });
   },
 
   // ---- Início: uma aba que SEMPRE existe, fixada e separada das outras ----
