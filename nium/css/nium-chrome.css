@@ -1578,3 +1578,21 @@ findbar:not([hidden]) { animation: nium-fade-up .22s var(--nium-ease); }
 @media (prefers-reduced-motion: reduce) {
   #urlbar[open] .urlbarView-body-outer, #tabbrowser-tabpanels > .deck-selected, #PersonalToolbar, findbar, #star-button[starred] { animation: none !important; }
 }
+
+/* ---- Lateral: proporções e limite (6/11) ---- */
+/* Largura: dá para arrastar, mas com limite razoável */
+#sidebar-main,
+sidebar-main {
+  max-width: 380px !important;
+}
+#sidebar-main[expanded], sidebar-main[expanded] { min-width: 200px !important; }
+/* Recolhida: tudo no mesmo eixo, no centro da lateral */
+sidebar-main:not([expanded]) > .nium-sb-block {
+  button { gap: 0 !important; margin-inline: auto; }
+  .nium-sb-icon { margin: 0 !important; }
+  .nium-brand { align-self: stretch; justify-content: center; padding: 0; }
+  .nium-brand::before { inset: 0 !important; }
+}
+/* Ícones da lateral e da barra do mesmo tamanho (16px), a casinha um pouco maior */
+.nium-sb-block .nium-sb-icon { width: 16px; height: 16px; flex: none; }
+.nium-home-row > .nium-sb-icon { width: 18px !important; height: 18px !important; }

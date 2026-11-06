@@ -405,15 +405,26 @@ var NiumWelcome = {
     ];
   },
 
+  searchService() {
+    if (Services.search) return Services.search;
+    try {
+      return ChromeUtils.importESModule("moz-src:///toolkit/components/search/SearchService.sys.mjs").SearchService;
+    } catch (e) {
+      return ChromeUtils.importESModule("resource://gre/modules/SearchService.sys.mjs").SearchService;
+    }
+  },
+
   async step_search() {
     const t = this.t;
     const el = NiumSidebar.el.bind(NiumSidebar);
     let engines = [];
     let current = null;
+    // Nesta versão do Firefox o buscador mora num módulo (antes era Services.search)
+    const search = this.searchService();
     try {
-      await Services.search.init?.();
-      engines = (await (Services.search.getVisibleEngines?.() ?? Services.search.getEngines())).filter(e => !e.hidden).slice(0, 6);
-      current = await Services.search.getDefault();
+      await search.init?.();
+      engines = (await search.getVisibleEngines()).filter(e => !e.hidden).slice(0, 6);
+      current = await search.getDefault();
     } catch (e) {
       console.error("Nium: lista de buscadores", e);
     }
@@ -426,11 +437,7 @@ var NiumWelcome = {
       const preview = iconURL ? el("img", { class: "nw-engine-icon", src: iconURL, alt: "" }) : el("span", { class: "nw-letter", text: engine.name[0] });
       rows.push(
         this.choice(engine.name, "", engine.name === current?.name, async () => {
-          try {
-            await Services.search.setDefault(engine, Ci.nsISearchService.CHANGE_REASON_USER);
-          } catch (e) {
-            Services.search.defaultEngine = engine;
-          }
+          await search.setDefault(engine, search.CHANGE_REASON?.USER ?? Ci.nsISearchService?.CHANGE_REASON_USER);
         }, preview)
       );
     }

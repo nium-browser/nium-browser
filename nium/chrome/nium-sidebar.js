@@ -345,19 +345,59 @@ var NiumSidebar = {
     else root.style.removeProperty("--nium-tint");
   },
 
-  // Pergunta a cor à página da aba atual (não depende só do aviso da página).
+  // Pergunta a cor da aba atual: primeiro à página (theme-color/fundo); se não der, tira um
+  // "retratinho" bem pequeno da página e usa a cor da faixa de cima (onde ela encosta na barra).
   async askTint(browser = gBrowser.selectedBrowser) {
+    const spec = browser.currentURI?.spec || "";
+    if (!/^https?:/.test(spec)) {
+      this.tints.delete(browser);
+      if (browser === gBrowser.selectedBrowser) this.applyTint(null);
+      return;
+    }
+    let color = null;
     try {
-      const spec = browser.currentURI?.spec || "";
-      if (!/^https?:/.test(spec)) {
-        this.tints.delete(browser);
-        if (browser === gBrowser.selectedBrowser) this.applyTint(null);
-        return;
-      }
       const actor = browser.browsingContext?.currentWindowGlobal?.getActor("NiumTint");
-      const color = await actor?.sendQuery("Nium:GetTint");
-      if (color !== undefined) this.setTint(browser, color ?? null);
-    } catch (e) {}
+      color = (await actor?.sendQuery("Nium:GetTint")) ?? null;
+    } catch (e) {
+      this.tintWarn("leitura da página", e);
+    }
+    if (!color) color = await this.snapshotColor(browser);
+    if (browser.currentURI?.spec !== spec) return; // a aba já foi para outro lugar
+    this.setTint(browser, color);
+  },
+
+  async snapshotColor(browser) {
+    try {
+      const wg = browser.browsingContext?.currentWindowGlobal;
+      if (!wg?.drawSnapshot) return null;
+      const bitmap = await wg.drawSnapshot(null, 0.08, "white");
+      if (!this._snapCanvas) this._snapCanvas = document.createElementNS(this.HTML, "canvas");
+      const canvas = this._snapCanvas;
+      canvas.width = bitmap.width;
+      canvas.height = Math.max(1, Math.min(3, bitmap.height));
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      ctx.drawImage(bitmap, 0, 0);
+      bitmap.close?.();
+      const data = ctx.getImageData(0, 0, canvas.width, 1).data;
+      let r = 0, g = 0, b = 0, n = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        r += data[i];
+        g += data[i + 1];
+        b += data[i + 2];
+        n++;
+      }
+      if (!n) return null;
+      return `rgb(${Math.round(r / n)}, ${Math.round(g / n)}, ${Math.round(b / n)})`;
+    } catch (e) {
+      this.tintWarn("retratinho", e);
+      return null;
+    }
+  },
+
+  tintWarn(where, e) {
+    if (this._tintWarned) return;
+    this._tintWarned = true;
+    console.warn(`Nium: cor da aba (${where})`, e);
   },
 
   watchTint() {
@@ -462,6 +502,17 @@ var NiumSidebar = {
       update(false);
     });
     update(false);
+  },
+
+  // Abre "Seu Nium" nas configurações (reaproveita a aba de configurações se já existir;
+  // openPreferences falhava com a aba de configurações adormecida).
+  openSettings() {
+    const url = "about:preferences#nium";
+    try {
+      switchToTabHavingURI(url, true, { ignoreFragment: "whenComparingAndReplace", triggeringPrincipal: Services.scriptSecurityManager.getSystemPrincipal() });
+    } catch (e) {
+      openTrustedLinkIn(url, "tab");
+    }
   },
 
   // ---- Início: uma aba que SEMPRE existe, fixada e separada das outras ----
@@ -1045,7 +1096,7 @@ var NiumSidebar = {
       this.el("button", { class: "nium-link-row", onclick: action }, [this.icon(icon), this.el("span", { text: label })]);
     body.append(
       this.el("div", { class: "nium-subheading", text: "" }),
-      link(t.openSettings, "chrome://browser/content/nium/icons/settings.svg", () => openPreferences("paneNium")),
+      link(t.openSettings, "chrome://browser/content/nium/icons/settings.svg", () => this.openSettings()),
       link(t.openShortcuts, "chrome://browser/content/nium/icons/search.svg", () => openTrustedLinkIn("about:keyboard", "tab")),
       link(t.openAddons, "chrome://browser/content/nium/icons/puzzle.svg", () => BrowserAddonUI.openAddonsMgr("addons://list/extension")),
       link(t.openWelcome, "chrome://browser/content/nium/icons/help.svg", () => {
