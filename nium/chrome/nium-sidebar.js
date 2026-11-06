@@ -306,7 +306,7 @@ var NiumSidebar = {
   // (O Firefox só anima o fechar nas abas em cima; na lateral a aba sumia de uma vez.)
   // ---- A moldura (lateral e barra de cima) acompanha a cor da aba aberta ----
   // Um toque da cor do site (theme-color ou o fundo da página), misturado às cores do Nium,
-  // com transição suave. O logo do Nium nunca muda. Liga e desliga em "Seu Nium".
+  // com transição suave; a aba ativa e o bloco do logo acompanham. Liga e desliga em "Seu Nium".
   tints: new WeakMap(),
 
   setTint(browser, color) {
