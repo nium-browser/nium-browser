@@ -7,6 +7,8 @@
 #
 # Na primeira vez leva de 1 a 3 horas e uns 40 GB de disco (as seguintes são bem mais rápidas).
 # Pode parar com Ctrl+C e rodar de novo: ele continua de onde parou.
+# Se os compiladores travarem (0xC0000409, falta de memória), use menos tarefas:
+#     NIUM_JOBS=4 bash ../nium-browser/nium/scripts/build-release.sh
 set -e
 KIT="$(cd "$(dirname "$0")/.." && pwd)"
 say() { printf '\n\033[1;32m[nium]\033[0m %s\n' "$*"; }
@@ -37,8 +39,12 @@ else
   say "2/6 Ferramentas já instaladas"
 fi
 
-say "3/6 Compilando o Nium inteiro (a parte demorada)"
-./mach build
+# Tarefas em paralelo: metade dos núcleos (todos de uma vez esgotam a memória e os compiladores
+# travam com 0xC0000409). Para usar menos: NIUM_JOBS=4 bash .../build-release.sh
+CORES="$(nproc 2>/dev/null || echo 8)"
+JOBS="${NIUM_JOBS:-$(( CORES / 2 > 2 ? CORES / 2 : 2 ))}"
+say "3/6 Compilando o Nium inteiro (a parte demorada) com $JOBS tarefas em paralelo"
+./mach build -j"$JOBS"
 
 say "4/6 Juntando o uBlock Origin e as regras do Nium (pasta distribution)"
 python "$KIT/scripts/apply.py" --release
