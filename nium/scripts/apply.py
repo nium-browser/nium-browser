@@ -453,6 +453,11 @@ PATCHES = [
   ('browser/components/sidebar/browser-sidebar.js', 'iconUrl: "chrome://browser/skin/bookmark-hollow.svg",', 'iconUrl: "chrome://browser/content/nium/icons/bookmarks.svg",'),
   ('browser/components/sidebar/browser-sidebar.js', 'iconUrl: "chrome://global/skin/icons/highlights.svg",', 'iconUrl: "chrome://browser/content/nium/icons/sparkle.svg",'),
   ('browser/components/sidebar/browser-sidebar.js', 'iconUrl: "chrome://global/skin/icons/settings.svg",', 'iconUrl: "chrome://browser/content/nium/icons/settings.svg",'),
+  # Fase 7: fabricante "Nium" e perfil próprio em %APPDATA%\Nium (o Firefox só aceita estes dois
+  # valores vindos do moz.configure, não do mozconfig)
+  ('browser/moz.configure',
+   'imply_option("MOZ_APP_VENDOR", "Mozilla")\n',
+   'imply_option("MOZ_APP_VENDOR", "Nium")\nimply_option("MOZ_APP_PROFILE", "Nium")\n'),
   # Fase 7: a pasta distribution (uBlock Origin, regras) vai no pacote também fora da Mozilla
   ('browser/installer/package-manifest.in',
    '#if defined(BUILT_BY_MOZILLA)\n@RESPATH@/distribution/*\n#endif\n',

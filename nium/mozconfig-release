@@ -2,11 +2,10 @@
 # Usada pelo scripts/build-release.sh (MOZCONFIG aponta para a cópia mozconfig-nium-release).
 # A do dia a dia (Artifact Mode) continua sendo o "mozconfig".
 
-# Marca e identidade: nium.exe, perfil em %APPDATA%\Nium (separado do Firefox)
+# Marca e identidade: nium.exe. (O fabricante "Nium" e o perfil em %APPDATA%\Nium, separado do
+# Firefox, vêm de um remendo do apply.py no browser/moz.configure: o Firefox não aceita isso aqui.)
 ac_add_options --with-branding=browser/branding/nium
 ac_add_options --with-app-basename=Nium
-ac_add_options MOZ_APP_PROFILE=Nium
-ac_add_options MOZ_APP_VENDOR=Nium
 ac_add_options --with-distribution-id=app.nium
 
 # Versão de lançamento: otimizada, sem depuração, sem testes nem relatório de travamento para a Mozilla
