@@ -16,6 +16,14 @@ if [ ! -f mach ]; then
   exit 1
 fi
 
+# O Git recusa pastas criadas por outro usuário do Windows ("dubious ownership"); o bootstrap
+# precisa dele. Libera só as pastas do Firefox e das traduções.
+for dir in "$PWD" "$PWD/../firefox-l10n"; do
+  [ -d "$dir" ] || continue
+  win="$(cd "$dir" && pwd -W 2>/dev/null || pwd)"
+  git config --global --get-all safe.directory 2>/dev/null | grep -qxF "$win" || git config --global --add safe.directory "$win"
+done
+
 say "1/6 Aplicando o Nium no código (modo lançamento)"
 python "$KIT/scripts/apply.py" --release
 
