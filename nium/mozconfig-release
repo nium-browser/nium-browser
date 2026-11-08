@@ -1,0 +1,23 @@
+# Nium — compilação completa: o nium.exe de verdade, com instalador (Fase 7).
+# Usada pelo scripts/build-release.sh (MOZCONFIG aponta para a cópia mozconfig-nium-release).
+# A do dia a dia (Artifact Mode) continua sendo o "mozconfig".
+
+# Marca e identidade: nium.exe, perfil em %APPDATA%\Nium (separado do Firefox)
+ac_add_options --with-branding=browser/branding/nium
+ac_add_options --with-app-basename=Nium
+ac_add_options MOZ_APP_PROFILE=Nium
+ac_add_options MOZ_APP_VENDOR=Nium
+ac_add_options --with-distribution-id=app.nium
+
+# Versão de lançamento: otimizada, sem depuração, sem testes nem relatório de travamento para a Mozilla
+ac_add_options --enable-update-channel=release
+ac_add_options --enable-release
+ac_add_options --enable-optimize
+ac_add_options --disable-debug
+ac_add_options --disable-tests
+ac_add_options --disable-crashreporter
+
+# Português junto com o inglês (traduções baixadas pelo apply.py)
+ac_add_options --with-l10n-base="$topsrcdir/../firefox-l10n"
+
+mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/obj-nium-release

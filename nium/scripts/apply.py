@@ -224,6 +224,8 @@ def ublock():
         say(f'AVISO: não consegui baixar o uBlock Origin ({e}); o Nium Shield fica sem bloqueio por enquanto')
         return
       say(f'AVISO: não consegui atualizar o uBlock Origin ({e}); uso o que já estava baixado')
+  if RELEASE:
+    return  # no nium.exe ele vai na pasta distribution (ver distribution())
   profile = FIREFOX / 'obj-nium' / 'tmp' / 'profile-default'
   if not profile.exists():
     say('AVISO: rode ./mach run uma vez e depois o apply.py de novo, para instalar o uBlock Origin no perfil')
@@ -235,18 +237,60 @@ def ublock():
   say('Nium Shield: uBlock Origin no perfil de teste')
 
 
+RELEASE = False  # apply.py --release: prepara a compilação completa (Fase 7)
+
+
 def prefs():
   p = FIREFOX / 'browser' / 'app' / 'profile' / 'firefox.js'
   text = p.read_text(encoding='utf-8')
   if BEGIN in text:
     text = text[:text.index(BEGIN)].rstrip('\n') + '\n'
   block = (KIT / 'prefs' / 'nium-prefs.js').read_text(encoding='utf-8').strip('\n')
+  if RELEASE:
+    # No nium.exe saem as preferências que só servem para desenvolver
+    import re
+    block = re.sub(r'// <só-desenvolvimento>.*?// </só-desenvolvimento>\n?', '', block, flags=re.S)
   block += '\n\n// Tema Nium por padrão\npref("extensions.activeThemeID", "%s");' % THEME_ID
   write_if_changed(p, text + '\n' + BEGIN + '\n' + block + '\n' + END + '\n')
   say('preferências do Nium no firefox.js')
 
 
+def distribution():
+  """Fase 7: o que vai junto no nium.exe (pasta distribution, ao lado do programa).
+
+  - uBlock Origin (Nium Shield), assinado pela Mozilla: instalado em cada perfil novo;
+  - distribution.ini: identifica o Nium;
+  - policies.json: por enquanto desliga a atualização automática (ainda não temos a nossa
+    chave de assinatura; sem ela o Nium procuraria atualizações da Mozilla). A parte 2 da
+    Fase 7 liga as atualizações do Nium.
+  Só existe depois do ./mach build (pasta obj-nium-release/dist/bin).
+  """
+  import json
+  bin_dir = FIREFOX / 'obj-nium-release' / 'dist' / 'bin'
+  if not bin_dir.exists():
+    say('distribution: rode ./mach build (compilação completa) e depois o apply.py --release de novo')
+    return
+  dist = bin_dir / 'distribution'
+  (dist / 'extensions').mkdir(parents=True, exist_ok=True)
+  cache = KIT.parent / '.cache' / 'ublock-origin.xpi'
+  if cache.exists():
+    dest = dist / 'extensions' / (UBO_ID + '.xpi')
+    if not dest.exists() or dest.read_bytes() != cache.read_bytes():
+      shutil.copyfile(cache, dest)
+  else:
+    say('AVISO: uBlock Origin não baixado; o instalador vai sem o Nium Shield')
+  write_if_changed(dist / 'distribution.ini',
+                   '[Global]\nid=app.nium\nversion=1.0\nabout=Nium\n\n[Preferences]\n')
+  write_if_changed(dist / 'policies.json',
+                   json.dumps({'policies': {'DisableAppUpdate': True}}, indent=2) + '\n')
+  say('distribution: uBlock Origin, distribution.ini e policies.json prontos para o instalador')
+
+
 def mozconfig():
+  if RELEASE:
+    write_if_changed(FIREFOX / 'mozconfig-nium-release', (KIT / 'mozconfig-release').read_text(encoding='utf-8'))
+    say('mozconfig-nium-release (compilação completa)')
+    return
   p = FIREFOX / 'mozconfig'
   ours = (KIT / 'mozconfig').read_text(encoding='utf-8')
   if p.exists() and 'Nium' not in p.read_text(encoding='utf-8'):
@@ -409,6 +453,10 @@ PATCHES = [
   ('browser/components/sidebar/browser-sidebar.js', 'iconUrl: "chrome://browser/skin/bookmark-hollow.svg",', 'iconUrl: "chrome://browser/content/nium/icons/bookmarks.svg",'),
   ('browser/components/sidebar/browser-sidebar.js', 'iconUrl: "chrome://global/skin/icons/highlights.svg",', 'iconUrl: "chrome://browser/content/nium/icons/sparkle.svg",'),
   ('browser/components/sidebar/browser-sidebar.js', 'iconUrl: "chrome://global/skin/icons/settings.svg",', 'iconUrl: "chrome://browser/content/nium/icons/settings.svg",'),
+  # Fase 7: a pasta distribution (uBlock Origin, regras) vai no pacote também fora da Mozilla
+  ('browser/installer/package-manifest.in',
+   '#if defined(BUILT_BY_MOZILLA)\n@RESPATH@/distribution/*\n#endif\n',
+   '@RESPATH@/distribution/*\n'),
   # about:logins: tira as instruções de sincronizar com conta Mozilla
   ('browser/components/aboutlogins/content/aboutLogins.html', '        <ul>\n          <li data-l10n-id="login-intro-instructions-fxa2">', '        <ul hidden>\n          <li data-l10n-id="login-intro-instructions-fxa2">'),
 ]
@@ -553,7 +601,10 @@ def revert():
 def main():
   parser = argparse.ArgumentParser()
   parser.add_argument('--revert', action='store_true')
+  parser.add_argument('--release', action='store_true', help='prepara a compilação completa (nium.exe + instalador)')
   args = parser.parse_args()
+  global RELEASE
+  RELEASE = args.release
   if not (FIREFOX / 'mach').exists() or not (FIREFOX / 'browser' / 'branding').exists():
     sys.exit('[nium] Rode dentro da pasta do código do Firefox (onde fica o arquivo mach).')
   if args.revert:
@@ -570,6 +621,11 @@ def main():
   prefs()
   ublock()
   l10n()
+  if RELEASE:
+    distribution()
+    mozconfig()
+    say('pronto (compilação completa). Siga o scripts/build-release.sh')
+    return
   langpack()
   mozconfig()
   say('pronto. Agora: ./mach build && ./mach build langpack-pt-BR && python3 ../nium-browser/nium/scripts/apply.py && ./mach run')

@@ -85,8 +85,10 @@ pref("extensions.autoDisableScopes", 14);
 
 // Idioma: o do Windows (português, espanhol…) quando o pacote de idioma estiver instalado
 pref("intl.locale.requested", "");
+// <só-desenvolvimento> (o apply.py --release tira este bloco: no nium.exe o português já vem dentro)
 // O pacote de idioma é feito na própria compilação (sem assinatura da Mozilla)
 pref("extensions.langpacks.signatures.required", false);
+// </só-desenvolvimento>
 
 // Fase 6: visual final
 // Vidro do Windows 11 na janela e nos menus (0 auto, 1 Mica, 2 Acrílico, 3 Mica com abas). Muda em "Seu Nium".
