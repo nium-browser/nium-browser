@@ -7,6 +7,7 @@
 #
 # Na primeira vez leva de 1 a 3 horas e uns 40 GB de disco (as seguintes são bem mais rápidas).
 # Pode parar com Ctrl+C e rodar de novo: ele continua de onde parou.
+# Só refazer o instalador (sem compilar de novo): NIUM_ONLY_INSTALLER=1 bash .../build-release.sh
 # Se os compiladores travarem (0xC0000409, falta de memória), use menos tarefas:
 #     NIUM_JOBS=4 bash ../nium-browser/nium/scripts/build-release.sh
 set -e
@@ -26,6 +27,7 @@ for dir in "$PWD" "$PWD/../firefox-l10n"; do
   git config --global --get-all safe.directory 2>/dev/null | grep -qxF "$win" || git config --global --add safe.directory "$win"
 done
 
+if [ -z "$NIUM_ONLY_INSTALLER" ]; then
 say "1/6 Aplicando o Nium no código (modo lançamento)"
 python "$KIT/scripts/apply.py" --release
 
@@ -53,9 +55,27 @@ say "5/6 Empacotando com inglês e português"
 ./mach package
 ./mach package-multi-locale --locales en-US pt-BR
 
-say "6/6 Gerando o instalador do Windows"
-./mach build installer
+fi
 
-OUT="obj-nium-release/dist/install/sea"
-say "Pronto! O instalador está em: $PWD/$OUT"
-ls -lh "$OUT" 2>/dev/null || true
+export MOZCONFIG="$PWD/mozconfig-nium-release"
+say "6/6 Gerando o instalador do Windows"
+# O instalador é montado a partir do pacote .zip (com inglês e português) que o passo 5 gerou.
+ZIP="$(ls -t obj-nium-release/dist/nium-*.win64.zip 2>/dev/null | head -1)"
+if [ -z "$ZIP" ]; then
+  echo "[nium] Não achei o pacote .zip em obj-nium-release/dist. O passo 5 terminou?"
+  exit 1
+fi
+ZIP_WIN="$(cygpath -m "$PWD/$ZIP" 2>/dev/null || echo "$PWD/$ZIP")"
+MAKE="$HOME/.mozbuild/mozmake/mozmake.exe"
+[ -x "$MAKE" ] || MAKE="mozmake"
+"$MAKE" -C obj-nium-release/browser/installer/windows installer ZIP_IN="$ZIP_WIN"
+
+INST="$(ls -t obj-nium-release/dist/install/sea/*.exe 2>/dev/null | head -1)"
+[ -n "$INST" ] || INST="$(find obj-nium-release/dist -maxdepth 3 -name '*installer*.exe' -newer "$ZIP" 2>/dev/null | head -1)"
+if [ -n "$INST" ]; then
+  say "Pronto! Instalador do Nium: $(cygpath -w "$PWD/$INST" 2>/dev/null || echo "$PWD/$INST")"
+  ls -lh "$INST"
+else
+  echo "[nium] O instalador não apareceu. Mande um print das últimas linhas."
+  exit 1
+fi
