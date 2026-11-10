@@ -15,6 +15,12 @@ ac_add_options --enable-optimize
 ac_add_options --disable-debug
 ac_add_options --disable-tests
 ac_add_options --disable-crashreporter
+# Atualizações (Fase 7, parte 2): só aceita pacotes .mar do canal do Nium, assinados com a nossa
+# chave. Sem o serviço de manutenção da Mozilla (ele exige o certificado da Mozilla no updater);
+# o Windows pede permissão na hora de instalar a atualização.
+ac_add_options --disable-maintenance-service
+export MAR_CHANNEL_ID=nium-release
+export ACCEPTED_MAR_CHANNEL_IDS=nium-release
 
 # Português junto com o inglês (traduções baixadas pelo apply.py)
 ac_add_options --with-l10n-base="$topsrcdir/../firefox-l10n"

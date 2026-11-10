@@ -260,9 +260,6 @@ def distribution():
 
   - uBlock Origin (Nium Shield), assinado pela Mozilla: instalado em cada perfil novo;
   - distribution.ini: identifica o Nium;
-  - policies.json: por enquanto desliga a atualização automática (ainda não temos a nossa
-    chave de assinatura; sem ela o Nium procuraria atualizações da Mozilla). A parte 2 da
-    Fase 7 liga as atualizações do Nium.
   Só existe depois do ./mach build (pasta obj-nium-release/dist/bin).
   """
   import json
@@ -281,9 +278,38 @@ def distribution():
     say('AVISO: uBlock Origin não baixado; o instalador vai sem o Nium Shield')
   write_if_changed(dist / 'distribution.ini',
                    '[Global]\nid=app.nium\nversion=1.0\nabout=Nium\n\n[Preferences]\n')
-  write_if_changed(dist / 'policies.json',
-                   json.dumps({'policies': {'DisableAppUpdate': True}}, indent=2) + '\n')
-  say('distribution: uBlock Origin, distribution.ini e policies.json prontos para o instalador')
+  # A parte 1 desligava a atualização por aqui; agora o Nium se atualiza sozinho. Sem regras
+  # (policies.json) o Nium também não aparece como "gerenciado pela sua organização".
+  old_policies = dist / 'policies.json'
+  if old_policies.exists():
+    old_policies.unlink()
+  say('distribution: uBlock Origin e distribution.ini prontos para o instalador')
+
+
+UPDATE_CERTS = (('primary.der', 'toolkit/mozapps/update/updater/release_primary.der'),
+                ('secondary.der', 'toolkit/mozapps/update/updater/release_secondary.der'))
+
+
+def update_certs():
+  """Fase 7, parte 2: o updater do Nium só aceita pacotes .mar assinados com a chave do Nium.
+
+  Troca os certificados da Mozilla (canal release) pelos nossos, de nium/update/certs/ (criados
+  uma vez com: python nium-update.py chaves). Sem eles a compilação completa não segue: o Nium
+  sairia esperando a assinatura da Mozilla e nunca conseguiria se atualizar.
+  """
+  src = KIT / 'update' / 'certs'
+  missing = [n for n, _ in UPDATE_CERTS if not (src / n).exists()]
+  if missing:
+    sys.exit('[nium] faltam os certificados de atualização em nium/update/certs. Rode uma vez:\n'
+             '    python ../nium-browser/nium/scripts/nium-update.py chaves')
+  n = 0
+  for name, rel in UPDATE_CERTS:
+    data = (src / name).read_bytes()
+    dest = FIREFOX / rel
+    if not dest.exists() or dest.read_bytes() != data:
+      dest.write_bytes(data)
+      n += 1
+  say(f'certificados de atualização do Nium no updater ({n} trocados)')
 
 
 def mozconfig():
@@ -462,6 +488,11 @@ PATCHES = [
   ('browser/installer/package-manifest.in',
    '#if defined(BUILT_BY_MOZILLA)\n@RESPATH@/distribution/*\n#endif\n',
    '@RESPATH@/distribution/*\n'),
+  # Fase 7, parte 2: o Nium procura atualizações no site do Nium, não na Mozilla
+  # (https://niumbrowser.web.app/update/6/Nium/.../update.xml; o site responde com update/release.xml)
+  ('build/moz.build',
+   'appini_defines["MOZ_APPUPDATE_HOST"] = "aus5.mozilla.org"',
+   'appini_defines["MOZ_APPUPDATE_HOST"] = "niumbrowser.web.app"  # Nium'),
   # about:logins: tira as instruções de sincronizar com conta Mozilla
   ('browser/components/aboutlogins/content/aboutLogins.html', '        <ul>\n          <li data-l10n-id="login-intro-instructions-fxa2">', '        <ul hidden>\n          <li data-l10n-id="login-intro-instructions-fxa2">'),
 ]
@@ -590,7 +621,7 @@ def revert():
                    'browser/extensions/newtab/prerendered/activity-stream.html',
                    'browser/extensions/newtab/addon-jar.mn']
                   + sorted({r for r, _, _ in PATCHES}) + _mascots() + list(LOGO_ICONS) + list(PRIVATE_ICONS) + list(ERROR_ART)
-                  + [t for t, _ in PAGE_CSS], cwd=FIREFOX)
+                  + [t for t, _ in PAGE_CSS] + [r for _, r in UPDATE_CERTS], cwd=FIREFOX)
   m = FIREFOX / 'mozconfig'
   if m.exists() and 'Nium' in m.read_text(encoding='utf-8'):
     m.unlink()
@@ -627,6 +658,7 @@ def main():
   ublock()
   l10n()
   if RELEASE:
+    update_certs()
     distribution()
     mozconfig()
     say('pronto (compilação completa). Siga o scripts/build-release.sh')
